@@ -1,5 +1,5 @@
 // RUN: split-file %s %t
-// RUN: %clang_cc1 -load %llvmshlibdir/RenamePlugin%pluginext\
+// RUN: %clang_cc1 -load %llvmshlibdir/rename_id_plugin%pluginext\
 // RUN: -add-plugin rename\
 // RUN: -plugin-arg-rename type=var\
 // RUN: -plugin-arg-rename cur-name=a\
@@ -13,7 +13,7 @@
 // VAR-NEXT:  return new_var;
 // VAR-NEXT: }
 
-// RUN: %clang_cc1 -load %llvmshlibdir/RenamePlugin%pluginext\
+// RUN: %clang_cc1 -load %llvmshlibdir/rename_id_plugin%pluginext\
 // RUN: -add-plugin rename\
 // RUN: -plugin-arg-rename type=var\
 // RUN: -plugin-arg-rename cur-name=c\
@@ -28,7 +28,7 @@
 // NON_EXIST_VAR-NEXT:  return b - a;
 // NON_EXIST_VAR-NEXT: }
 
-// RUN: %clang_cc1 -load %llvmshlibdir/RenamePlugin%pluginext\
+// RUN: %clang_cc1 -load %llvmshlibdir/rename_id_plugin%pluginext\
 // RUN: -add-plugin rename\
 // RUN: -plugin-arg-rename type=func\
 // RUN: -plugin-arg-rename cur-name=function\
@@ -46,7 +46,7 @@
 // FUNC-NEXT: return a;
 // FUNC-NEXT: }
 
-// RUN: %clang_cc1 -load %llvmshlibdir/RenamePlugin%pluginext\
+// RUN: %clang_cc1 -load %llvmshlibdir/rename_id_plugin%pluginext\
 // RUN: -add-plugin rename\
 // RUN: -plugin-arg-rename type=func\
 // RUN: -plugin-arg-rename cur-name=function\
@@ -62,7 +62,7 @@
 // NON_EXIST_FUNC-NEXT: int b = func(c) + func(3);
 // NON_EXIST_FUNC-NEXT: }
 
-// RUN: %clang_cc1 -load %llvmshlibdir/RenamePlugin%pluginext\
+// RUN: %clang_cc1 -load %llvmshlibdir/rename_id_plugin%pluginext\
 // RUN: -add-plugin rename\
 // RUN: -plugin-arg-rename type=class\
 // RUN: -plugin-arg-rename cur-name=Base\
@@ -84,7 +84,7 @@
 // CLASS-NEXT: delete var;
 // CLASS-NEXT: }
 
-// RUN: %clang_cc1 -load %llvmshlibdir/RenamePlugin%pluginext\
+// RUN: %clang_cc1 -load %llvmshlibdir/rename_id_plugin%pluginext\
 // RUN: -add-plugin rename\
 // RUN: -plugin-arg-rename type=class\
 // RUN: -plugin-arg-rename cur-name=B\
@@ -105,7 +105,7 @@
 // NON_EXIST_CLASS-NEXT: delete var2;
 // NON_EXIST_CLASS-NEXT: }
 
-// RUN: %clang_cc1 -load %llvmshlibdir/RenamePlugin%pluginext\
+// RUN: %clang_cc1 -load %llvmshlibdir/rename_id_plugin%pluginext\
 // RUN: -add-plugin rename\
 // RUN: -plugin-arg-rename help\
 // RUN: 2>&1 | FileCheck %s --check-prefix=HELP
@@ -115,27 +115,27 @@
 // HELP-NEXT: -plugin-arg-rename cur-name="Current identifier name"
 // HELP-NEXT: -plugin-arg-rename new-name="New identifier name"
 
-// RUN: not %clang_cc1 -load %llvmshlibdir/RenamePlugin%pluginext\
+// RUN: not %clang_cc1 -load %llvmshlibdir/rename_id_plugin%pluginext\
 // RUN: -add-plugin rename\
 // RUN: -plugin-arg-rename cur-name=B\
 // RUN: -plugin-arg-rename new-name=C\
 // RUN: 2>&1 | FileCheck %s --check-prefix=ERROR
 
-// RUN: not %clang_cc1 -load %llvmshlibdir/RenamePlugin%pluginext\
+// RUN: not %clang_cc1 -load %llvmshlibdir/rename_id_plugin%pluginext\
 // RUN: -add-plugin rename\
 // RUN: -plugin-arg-rename cur-name=B\
 // RUN: -plugin-arg-rename new-name=C\
 // RUN: -plugin-arg-rename param=val\
 // RUN: 2>&1 | FileCheck %s --check-prefix=ERROR
 
-// RUN: not %clang_cc1 -load %llvmshlibdir/RenamePlugin%pluginext\
+// RUN: not %clang_cc1 -load %llvmshlibdir/rename_id_plugin%pluginext\
 // RUN: -add-plugin rename\
 // RUN: -plugin-arg-rename type=undefined\
 // RUN: -plugin-arg-rename cur-name=B\
 // RUN: -plugin-arg-rename new-name=C\
 // RUN: 2>&1 | FileCheck %s --check-prefix=ERROR
 
-// RUN: not %clang_cc1 -load %llvmshlibdir/RenamePlugin%pluginext\
+// RUN: not %clang_cc1 -load %llvmshlibdir/rename_id_plugin%pluginext\
 // RUN: -add-plugin rename\
 // RUN: 2>&1 | FileCheck %s --check-prefix=ERROR
 

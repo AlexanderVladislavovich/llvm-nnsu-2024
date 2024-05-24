@@ -13,19 +13,19 @@ public:
       : rewriter(rewriter), type(type), cur_name(cur_name), new_name(new_name) {
   }
 
-  bool VisitFunctionDecl(clang::FunctionDecl *func) {
-    if (type == IdType::Func && func->getName() == cur_name) {
-      rewriter.ReplaceText(func->getNameInfo().getSourceRange(), new_name);
-    }
-    return true;
-  }
-
   bool VisitCallExpr(clang::CallExpr *call) {
     if (type == IdType::Func) {
       clang::FunctionDecl *callee = call->getDirectCallee();
       if (callee && callee->getName() == cur_name) {
         rewriter.ReplaceText(call->getCallee()->getSourceRange(), new_name);
       }
+    }
+    return true;
+  }
+
+  bool VisitFunctionDecl(clang::FunctionDecl *func) {
+    if (type == IdType::Func && func->getName() == cur_name) {
+      rewriter.ReplaceText(func->getNameInfo().getSourceRange(), new_name);
     }
     return true;
   }
@@ -105,9 +105,7 @@ public:
 
   void HandleTranslationUnit(clang::ASTContext &context) override {
     Visitor.TraverseDecl(context.getTranslationUnitDecl());
-    if (Visitor.save_changes()) {
-      llvm::errs() << "An error occurred while saving changes to a file!\n";
-    }
+    if (Visitor.save_changes()) { llvm::errs() << "Error\n"; }
   }
 
 private:
@@ -126,7 +124,7 @@ protected:
   bool ParseArgs(const clang::CompilerInstance &CI,
                  const std::vector<std::string> &args) override {
     std::vector<std::pair<std::string, std::string>> params = {
-        {"type=", ""}, {"cur-name=", ""}, {"new-name=", ""}};
+        {"type=", ""}, {"oldName=", ""}, {"newName=", ""}};
 
     if (!args.empty() && args[0] == "help") {
       PrintHelp(llvm::errs());
