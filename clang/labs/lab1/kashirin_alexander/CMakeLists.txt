@@ -1,4 +1,4 @@
-add_llvm_library( rename_id_plugin MODULE RenameIds.cpp PLUGIN_TOOL clang)
+add_llvm_library( rename_id_plugin MODULE Rename_Plugin.cpp PLUGIN_TOOL clang)
 
 if(WIN32 OR CYGWIN)
     set(LLVM_LINK_COMPONENTS
