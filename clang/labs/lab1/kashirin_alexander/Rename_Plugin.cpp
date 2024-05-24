@@ -127,7 +127,6 @@ protected:
         {"type=", ""}, {"oldName=", ""}, {"newName=", ""}};
 
     if (!args.empty() && args[0] == "help") {
-      PrintHelp(llvm::errs());
       return true;
     }
 
