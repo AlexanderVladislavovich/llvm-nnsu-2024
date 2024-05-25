@@ -79,7 +79,6 @@ private:
         }
         if (Inst == LI) {
           break;
-          m - ly4 marked this conversation as resolved.
         }
       }
       Op->reverseUseList();
