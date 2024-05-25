@@ -12,14 +12,14 @@
 using namespace llvm;
 
 namespace {
-class X86KashirinMulPass : public MachineFunctionPass {
-public:
-  static char ID;
+  class X86KashirinMulPass : public MachineFunctionPass {
+  public:
+    static char ID;
 
-  X86KashirinMulPass() : MachineFunctionPass(ID) {}
+    X86KashirinMulPass() : MachineFunctionPass(ID) {}
 
-  bool runOnMachineFunction(MachineFunction &MF) override;
-};
+    bool runOnMachineFunction(MachineFunction &MF) override;
+  };
 
   bool X86KashirinMulPass::runOnMachineFunction(MachineFunction &MF) {
     bool modified = false;
@@ -72,9 +72,9 @@ public:
     return modified;
   }
 
-}
 
-char X86KashirinMulPass::ID = 0;
+
+  char X86KashirinMulPass::ID = 0;
 }
 
 static RegisterPass<X86KashirinMulPass>
