@@ -71,7 +71,8 @@ public:
 
     return modified;
   }
-};
+
+}
 
 char X86KashirinMulPass::ID = 0;
 }
