@@ -8,14 +8,12 @@
 
 static llvm::cl::opt<bool> MulShiftConstOnly(
     "mul-shift-const-only", llvm::cl::init(false),
-    llvm::cl::desc(
-        "Limit mul-to-shl replacement to constant pow_of_two operands"));
+    llvm::cl::desc( "Limit mul-to-shl replacement to constant pow_of_two operands" ));
 
 namespace {
 struct BitShiftPass : llvm::PassInfoMixin<BitShiftPass> {
 public:
-  llvm::PreservedAnalyses run(llvm::Function &Func,
-                              llvm::FunctionAnalysisManager &FAM) {
+  llvm::PreservedAnalyses run(llvm::Function &Func, llvm::FunctionAnalysisManager &FAM) {
     std::vector<llvm::Instruction *> toRemove;
     bool changed = false;
     for (llvm::BasicBlock &BB : Func) {
@@ -96,12 +94,12 @@ private:
 }
 
 llvm::PassPluginLibraryInfo getPluginInfo() {
-  return {LLVM_PLUGIN_API_VERSION, "ReplaceMulWithShift", "0.1",
+  return {LLVM_PLUGIN_API_VERSION, "KashirinBitShiftPass", "0.1",
           [](llvm::PassBuilder &PB) {
             PB.registerPipelineParsingCallback(
                 [](llvm::StringRef Name, llvm::FunctionPassManager &PM,
                    llvm::ArrayRef<llvm::PassBuilder::PipelineElement>) {
-                  if (Name == "replace-mul-with-shift") {
+                  if (Name == "BitShiftPass") {
                     PM.addPass(BitShiftPass());
                     return true;
                   }
