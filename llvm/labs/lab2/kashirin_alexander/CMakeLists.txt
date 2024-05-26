@@ -1,5 +1,10 @@
 set(PluginName KashirinBitShiftPlugin)
 
+add_compile_definitions(NAME=${PluginName})
+
+string(TOUPPER ${PluginName} PluginNameUpper)
+set(LLVM_${PluginNameUpper}_LINK_INTO_TOOLS ON)
+
 if (NOT WIN32 AND NOT CYGWIN)
   file(GLOB_RECURSE ALL_SOURCE_FILES *.cpp *.h *.hpp)
   
