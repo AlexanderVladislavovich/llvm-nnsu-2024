@@ -1,4 +1,4 @@
-set(PluginName KashirinBitShiftPlugin)
+set(PluginName "BitShiftPass")
 
 add_compile_definitions(NAME=${PluginName})
 
@@ -7,7 +7,7 @@ set(LLVM_${PluginNameUpper}_LINK_INTO_TOOLS ON)
 
 if (NOT WIN32 AND NOT CYGWIN)
   file(GLOB_RECURSE ALL_SOURCE_FILES *.cpp *.h *.hpp)
-  
+
   add_llvm_pass_plugin(${PluginName} 
     ${ALL_SOURCE_FILES}     
     DEPENDS

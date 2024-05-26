@@ -8,12 +8,14 @@
 
 static llvm::cl::opt<bool> MulShiftConstOnly(
     "mul-shift-const-only", llvm::cl::init(false),
-    llvm::cl::desc( "Limit mul-to-shl replacement to constant pow_of_two operands" ));
+    llvm::cl::desc(
+        "Limit mul-to-shl replacement to constant pow_of_two operands"));
 
 namespace {
-struct BitShiftPass : llvm::PassInfoMixin<BitShiftPass> {
+struct KashirinBitShiftPass : llvm::PassInfoMixin<KashirinBitShiftPass> {
 public:
-  llvm::PreservedAnalyses run(llvm::Function &Func, llvm::FunctionAnalysisManager &FAM) {
+  llvm::PreservedAnalyses run(llvm::Function &Func,
+                              llvm::FunctionAnalysisManager &FAM) {
     std::vector<llvm::Instruction *> toRemove;
     bool changed = false;
     for (llvm::BasicBlock &BB : Func) {
@@ -58,7 +60,8 @@ public:
       }
     }
 
-    if (changed) return llvm::PreservedAnalyses::none();
+    if (changed)
+      return llvm::PreservedAnalyses::none();
     return llvm::PreservedAnalyses::all();
   }
 
@@ -91,7 +94,7 @@ private:
     return -2;
   }
 };
-}
+} // namespace
 
 llvm::PassPluginLibraryInfo getPluginInfo() {
   return {LLVM_PLUGIN_API_VERSION, "KashirinBitShiftPass", "0.1",
@@ -99,8 +102,8 @@ llvm::PassPluginLibraryInfo getPluginInfo() {
             PB.registerPipelineParsingCallback(
                 [](llvm::StringRef Name, llvm::FunctionPassManager &PM,
                    llvm::ArrayRef<llvm::PassBuilder::PipelineElement>) {
-                  if (Name == "BitShiftPass") {
-                    PM.addPass(BitShiftPass());
+                  if (Name == "bit-shift-pass") {
+                    PM.addPass(KashirinBitShiftPass());
                     return true;
                   }
                   return false;
