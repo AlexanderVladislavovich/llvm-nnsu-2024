@@ -96,7 +96,7 @@ private:
 };
 } // namespace
 
-llvm::PassPluginLibraryInfo getPluginInfo() {
+llvm::PassPluginLibraryInfo getBitShiftPassPluginInfo() {
   return {LLVM_PLUGIN_API_VERSION, "KashirinBitShiftPass", "0.1",
           [](llvm::PassBuilder &PB) {
             PB.registerPipelineParsingCallback(
@@ -112,5 +112,5 @@ llvm::PassPluginLibraryInfo getPluginInfo() {
 }
 extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo
 llvmGetPassPluginInfo() {
-  return getPluginInfo();
+  return getBitShiftPassPluginInfo();
 }
