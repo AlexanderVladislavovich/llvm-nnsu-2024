@@ -12,7 +12,7 @@ static llvm::cl::opt<bool> MulShiftConstOnly(
         "Limit mul-to-shl replacement to constant pow_of_two operands"));
 
 namespace {
-struct KashirinBitShiftPass : llvm::PassInfoMixin<KashirinBitShiftPass> {
+struct ReplaceMulWithShift : llvm::PassInfoMixin<ReplaceMulWithShift> {
 public:
   llvm::PreservedAnalyses run(llvm::Function &Func,
                               llvm::FunctionAnalysisManager &FAM) {
@@ -96,14 +96,14 @@ private:
 };
 } // namespace
 
-llvm::PassPluginLibraryInfo getBitShiftPassPluginInfo() {
-  return {LLVM_PLUGIN_API_VERSION, "KashirinBitShiftPass", "0.1",
+llvm::PassPluginLibraryInfo getReplaceMulKashirinAlexanderFI1PluginInfo() {
+  return {LLVM_PLUGIN_API_VERSION, "KashirinReplaceMulWithShift", "0.1",
           [](llvm::PassBuilder &PB) {
             PB.registerPipelineParsingCallback(
                 [](llvm::StringRef Name, llvm::FunctionPassManager &PM,
                    llvm::ArrayRef<llvm::PassBuilder::PipelineElement>) {
-                  if (Name == "bit-shift-pass") {
-                    PM.addPass(KashirinBitShiftPass());
+                  if (Name == "kashirin-replace-mul-with-shift") {
+                    PM.addPass(ReplaceMulWithShift());
                     return true;
                   }
                   return false;
@@ -112,5 +112,5 @@ llvm::PassPluginLibraryInfo getBitShiftPassPluginInfo() {
 }
 extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo
 llvmGetPassPluginInfo() {
-  return getBitShiftPassPluginInfo();
+  return getReplaceMulKashirinAlexanderFI1PluginInfo();
 }

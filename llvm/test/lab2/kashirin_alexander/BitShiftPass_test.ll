@@ -1,13 +1,13 @@
 ; RUN: split-file %s %t
-; RUN: opt -passes="bit-shift-pass" -S %t/test1.ll | FileCheck %t/test1.ll
-; RUN: opt -passes="bit-shift-pass" -S %t/test2.ll | FileCheck %t/test2.ll
-; RUN: opt -passes="bit-shift-pass" -S %t/test3.ll | FileCheck %t/test3.ll
-; RUN: opt -passes="bit-shift-pass" -S %t/test4.ll | FileCheck %t/test4.ll
-; RUN: opt -passes="bit-shift-pass" -S %t/test5.ll | FileCheck %t/test5.ll
-; RUN: opt -passes="bit-shift-pass" -S %t/test6.ll | FileCheck %t/test6.ll
-; RUN: opt -passes="bit-shift-pass" -S %t/test7.ll | FileCheck %t/test7.ll
-; RUN: opt -passes="bit-shift-pass" -mul-shift-const-only=true -S %t/test8.ll | FileCheck %t/test8.ll
-; RUN: opt -passes="bit-shift-pass" -mul-shift-const-only=true -S %t/test9.ll | FileCheck %t/test9.ll
+; RUN: opt -passes="kashirin-replace-mul-with-shift" -S %t/test1.ll | FileCheck %t/test1.ll
+; RUN: opt -passes="kashirin-replace-mul-with-shift" -S %t/test2.ll | FileCheck %t/test2.ll
+; RUN: opt -passes="kashirin-replace-mul-with-shift" -S %t/test3.ll | FileCheck %t/test3.ll
+; RUN: opt -passes="kashirin-replace-mul-with-shift" -S %t/test4.ll | FileCheck %t/test4.ll
+; RUN: opt -passes="kashirin-replace-mul-with-shift" -S %t/test5.ll | FileCheck %t/test5.ll
+; RUN: opt -passes="kashirin-replace-mul-with-shift" -S %t/test6.ll | FileCheck %t/test6.ll
+; RUN: opt -passes="kashirin-replace-mul-with-shift" -S %t/test7.ll | FileCheck %t/test7.ll
+; RUN: opt -passes="kashirin-replace-mul-with-shift" -mul-shift-const-only=true -S %t/test8.ll | FileCheck %t/test8.ll
+; RUN: opt -passes="kashirin-replace-mul-with-shift" -mul-shift-const-only=true -S %t/test9.ll | FileCheck %t/test9.ll
 
 ;--- test1.ll
 

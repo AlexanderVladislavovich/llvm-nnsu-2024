@@ -1,4 +1,7 @@
-set(PluginName "BitShiftPass")
+set(Title "ReplaceMul")
+set(Student "KashirinAlexander")
+set(Group "FI1")
+set(PluginName "${Title}${Student}${Group}")
 
 add_compile_definitions(NAME=${PluginName})
 
