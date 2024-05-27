@@ -2,19 +2,30 @@
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/Frontend/CompilerInstance.h"
 #include "clang/Frontend/FrontendPluginRegistry.h"
+#include "clang/Lex/Lexer.h"
 #include "clang/Rewrite/Core/Rewriter.h"
 
 enum class IdType { Var, Func, Class };
 
 class RenameVisitor : public clang::RecursiveASTVisitor<RenameVisitor> {
 public:
+    bool isValidIdentifier(const std::string &name) const {
+    clang::Lexer lexer(clang::SourceLocation(), clang::LangOptions(),
+                       name.c_str(), name.c_str(),
+                       name.c_str() + name.length());
+    for (clang::Token tok; !lexer.LexFromRawLexer(tok);)
+      if (tok.isNot(clang::tok::identifier))
+        return false;
+    return true;
+    }
+
   explicit RenameVisitor(clang::Rewriter rewriter, IdType type,
                          clang::StringRef cur_name, clang::StringRef new_name)
       : rewriter(rewriter), type(type), cur_name(cur_name), new_name(new_name) {
   }
 
   bool VisitFunctionDecl(clang::FunctionDecl *func) {
-    if (type == IdType::Func && func->getName() == cur_name) {
+    if (type == IdType::Func && func->getName() == cur_name && isValidIdentifier(new_name)) {
       rewriter.ReplaceText(func->getNameInfo().getSourceRange(), new_name);
     }
     return true;
@@ -31,15 +42,18 @@ public:
   }
 
   bool VisitVarDecl(clang::VarDecl *var) {
-    if (type == IdType::Var && var->getName() == cur_name) {
+    if (type == IdType::Var && var->getName() == cur_name &&
+      isValidIdentifier(new_name)) {
       rewriter.ReplaceText(var->getLocation(), cur_name.size(), new_name);
     }
     if (type == IdType::Class &&
+        isValidIdentifier(new_name) &&
         var->getType().getAsString() == cur_name + " *") {
       rewriter.ReplaceText(var->getTypeSourceInfo()->getTypeLoc().getBeginLoc(),
                            cur_name.size(), new_name);
     }
-    if (type == IdType::Class && var->getType().getAsString() == cur_name) {
+    if (type == IdType::Class && var->getType().getAsString() == cur_name &&
+      isValidIdentifier(new_name)) {
       rewriter.ReplaceText(
           var->getTypeSourceInfo()->getTypeLoc().getSourceRange(), new_name);
     }

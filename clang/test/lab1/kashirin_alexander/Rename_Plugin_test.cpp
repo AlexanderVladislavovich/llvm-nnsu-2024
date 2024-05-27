@@ -142,6 +142,58 @@
 //ERROR: Invalid arguments
 //ERROR-NEXT: Specify "-plugin-arg-rename help" for usage
 
+// RUN: %clang_cc1 -load %llvmshlibdir/rename_id_plugin%pluginext\
+// RUN: -add-plugin rename\
+// RUN: -plugin-arg-rename type=class\
+// RUN: -plugin-arg-rename cur-name=TemplateClass\
+// RUN: -plugin-arg-rename new-name=RenamedClass %t/rename_template_class.cpp
+// RUN: FileCheck %s < %t/rename_template_class.cpp --check-prefix=TEMPLATE_CLASS
+
+// TEMPLATE_CLASS: class RenamedClass {
+// TEMPLATE_CLASS-NEXT: public:
+// TEMPLATE_CLASS-NEXT:   void method() {}
+// TEMPLATE_CLASS-NEXT: };
+
+// TEMPLATE_CLASS: void func() {
+// TEMPLATE_CLASS-NEXT:   RenamedClass<int> obj;
+// TEMPLATE_CLASS-NEXT:   obj.method();
+// TEMPLATE_CLASS-NEXT: }
+
+// RUN: %clang_cc1 -load %llvmshlibdir/rename_id_plugin%pluginext\
+// RUN: -add-plugin rename\
+// RUN: -plugin-arg-rename type=func\
+// RUN: -plugin-arg-rename cur-name=staticMethod\
+// RUN: -plugin-arg-rename new-name=renamedMethod %t/rename_static_method.cpp
+// RUN: FileCheck %s < %t/rename_static_method.cpp --check-prefix=STATIC_METHOD
+
+// STATIC_METHOD: class MyClass {
+// STATIC_METHOD: public:
+// STATIC_METHOD:   static void renamedMethod() {}
+// STATIC_METHOD: };
+
+// STATIC_METHOD: void func() {
+// STATIC_METHOD:   MyClass::renamedMethod();
+// STATIC_METHOD: }
+
+// RUN: %clang_cc1 -load %llvmshlibdir/rename_id_plugin%pluginext\
+// RUN: -add-plugin rename\
+// RUN: -plugin-arg-rename type=class\
+// RUN: -plugin-arg-rename cur-name=Base\
+// RUN: -plugin-arg-rename new-name=RenamedClass %t/rename_inherited_class.cpp
+// RUN: FileCheck %s < %t/rename_inherited_class.cpp --check-prefix=INHERITED_CLASS
+
+// INHERITED_CLASS: class RenamedClass {
+// INHERITED_CLASS-NEXT: public:
+// INHERITED_CLASS-NEXT:   void method() {}
+// INHERITED_CLASS-NEXT: };
+
+// INHERITED_CLASS: class Derived : public RenamedClass {};
+
+// INHERITED_CLASS: void func() {
+// INHERITED_CLASS-NEXT:   Derived obj;
+// INHERITED_CLASS-NEXT:   obj.method();
+// INHERITED_CLASS-NEXT: }
+
 //--- rename_var.cpp
 int func() {
   int a = 2, b = 2;
@@ -208,4 +260,39 @@ void func() {
   A var1;
   A* var2 = new A;
   delete var2;
+}
+
+//--- rename_template_class.cpp
+template<typename T>
+class TemplateClass {
+public:
+  void method() {}
+};
+
+void func() {
+  TemplateClass<int> obj;
+  obj.method();
+}
+
+//--- rename_static_method.cpp
+class MyClass {
+public:
+  static void staticMethod() {}
+};
+
+void func() {
+  MyClass::staticMethod();
+}
+
+//--- rename_inherited_class.cpp
+class Base {
+public:
+  void method() {}
+};
+
+class Derived : public Base {};
+
+void func() {
+  Derived obj;
+  obj.method();
 }
