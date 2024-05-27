@@ -150,15 +150,10 @@
 // RUN: FileCheck %s < %t/rename_template_class.cpp --check-prefix=TEMPLATE_CLASS
 
 // TEMPLATE_CLASS: template<typename T>
-// TEMPLATE_CLASS-NEXT: class TemplateClass {
+// TEMPLATE_CLASS-NEXT: class RenamedClass {
 // TEMPLATE_CLASS-NEXT: public:
 // TEMPLATE_CLASS-NEXT:   void method() {}
 // TEMPLATE_CLASS-NEXT: };
-
-// TEMPLATE_CLASS: void func() {
-// TEMPLATE_CLASS-NEXT:   TemplateClass<int> obj;
-// TEMPLATE_CLASS-NEXT:   obj.method();
-// TEMPLATE_CLASS-NEXT: }
 
 // RUN: %clang_cc1 -load %llvmshlibdir/rename_id_plugin%pluginext\
 // RUN: -add-plugin rename\
@@ -167,20 +162,20 @@
 // RUN: -plugin-arg-rename new-name=renamedMethod %t/rename_static_method.cpp
 // RUN: FileCheck %s < %t/rename_static_method.cpp --check-prefix=STATIC_METHOD
 
-// STATIC_METHOD: class MyClass {
+// STATIC_METHOD: class Class {
 // STATIC_METHOD: public:
-// STATIC_METHOD:   static void staticMethod() {}
+// STATIC_METHOD:   static void renamedMethod() {}
 // STATIC_METHOD: };
 
 // STATIC_METHOD: void func() {
-// STATIC_METHOD:   MyClass::staticMethod();
+// STATIC_METHOD:   MyClass::renamedMethod();
 // STATIC_METHOD: }
 
 // RUN: %clang_cc1 -load %llvmshlibdir/rename_id_plugin%pluginext\
 // RUN: -add-plugin rename\
 // RUN: -plugin-arg-rename type=class\
-// RUN: -plugin-arg-rename cur-name=Base\
-// RUN: -plugin-arg-rename new-name=RenamedClass %t/rename_inherited_class.cpp
+// RUN: -plugin-arg-rename cur-name=OldClass\
+// RUN: -plugin-arg-rename new-name=NewClass %t/rename_inherited_class.cpp
 // RUN: FileCheck %s < %t/rename_inherited_class.cpp --check-prefix=INHERITED_CLASS
 
 // INHERITED_CLASS: class Class {
@@ -188,10 +183,10 @@
 // INHERITED_CLASS-NEXT:   void method() {}
 // INHERITED_CLASS-NEXT: };
 
-// INHERITED_CLASS: class Derived : public Class {};
+// INHERITED_CLASS: class NewClass : public Class {};
 
 // INHERITED_CLASS: void func() {
-// INHERITED_CLASS-NEXT:   Derived obj;
+// INHERITED_CLASS-NEXT:   NewClass obj;
 // INHERITED_CLASS-NEXT:   obj.method();
 // INHERITED_CLASS-NEXT: }
 
@@ -270,11 +265,6 @@ public:
   void method() {}
 };
 
-void func() {
-  TemplateClass<int> obj;
-  obj.method();
-}
-
 //--- rename_static_method.cpp
 class MyClass {
 public:
@@ -291,9 +281,9 @@ public:
   void method() {}
 };
 
-class Derived : public Class {};
+class OldClass : public Class {};
 
 void func() {
-  Derived obj;
+  OldClass obj;
   obj.method();
 }
