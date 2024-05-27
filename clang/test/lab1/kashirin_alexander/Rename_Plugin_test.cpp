@@ -149,7 +149,8 @@
 // RUN: -plugin-arg-rename new-name=RenamedClass %t/rename_template_class.cpp
 // RUN: FileCheck %s < %t/rename_template_class.cpp --check-prefix=TEMPLATE_CLASS
 
-// TEMPLATE_CLASS: class TemplateClass {
+// TEMPLATE_CLASS: template<typename T>
+// TEMPLATE_CLASS-NEXT: class TemplateClass {
 // TEMPLATE_CLASS-NEXT: public:
 // TEMPLATE_CLASS-NEXT:   void method() {}
 // TEMPLATE_CLASS-NEXT: };
