@@ -168,7 +168,7 @@
 // STATIC_METHOD: };
 
 // STATIC_METHOD: void func() {
-// STATIC_METHOD:   Class::renamedMethod();
+// STATIC_METHOD:   renamedMethod();
 // STATIC_METHOD: }
 
 // RUN: %clang_cc1 -load %llvmshlibdir/rename_id_plugin%pluginext\
@@ -272,7 +272,7 @@ public:
 };
 
 void func() {
-  Class::staticMethod();
+  staticMethod();
 }
 
 //--- rename_inherited_class.cpp
