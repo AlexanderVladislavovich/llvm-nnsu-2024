@@ -149,13 +149,13 @@
 // RUN: -plugin-arg-rename new-name=RenamedClass %t/rename_template_class.cpp
 // RUN: FileCheck %s < %t/rename_template_class.cpp --check-prefix=TEMPLATE_CLASS
 
-// TEMPLATE_CLASS: class RenamedClass {
+// TEMPLATE_CLASS: class TemplateClass {
 // TEMPLATE_CLASS-NEXT: public:
 // TEMPLATE_CLASS-NEXT:   void method() {}
 // TEMPLATE_CLASS-NEXT: };
 
 // TEMPLATE_CLASS: void func() {
-// TEMPLATE_CLASS-NEXT:   RenamedClass<int> obj;
+// TEMPLATE_CLASS-NEXT:   TemplateClass<int> obj;
 // TEMPLATE_CLASS-NEXT:   obj.method();
 // TEMPLATE_CLASS-NEXT: }
 
@@ -168,11 +168,11 @@
 
 // STATIC_METHOD: class MyClass {
 // STATIC_METHOD: public:
-// STATIC_METHOD:   static void renamedMethod() {}
+// STATIC_METHOD:   static void staticMethod() {}
 // STATIC_METHOD: };
 
 // STATIC_METHOD: void func() {
-// STATIC_METHOD:   MyClass::renamedMethod();
+// STATIC_METHOD:   MyClass::staticMethod();
 // STATIC_METHOD: }
 
 // RUN: %clang_cc1 -load %llvmshlibdir/rename_id_plugin%pluginext\
@@ -182,12 +182,12 @@
 // RUN: -plugin-arg-rename new-name=RenamedClass %t/rename_inherited_class.cpp
 // RUN: FileCheck %s < %t/rename_inherited_class.cpp --check-prefix=INHERITED_CLASS
 
-// INHERITED_CLASS: class RenamedClass {
+// INHERITED_CLASS: class Class {
 // INHERITED_CLASS-NEXT: public:
 // INHERITED_CLASS-NEXT:   void method() {}
 // INHERITED_CLASS-NEXT: };
 
-// INHERITED_CLASS: class Derived : public RenamedClass {};
+// INHERITED_CLASS: class Derived : public Class {};
 
 // INHERITED_CLASS: void func() {
 // INHERITED_CLASS-NEXT:   Derived obj;
@@ -285,12 +285,12 @@ void func() {
 }
 
 //--- rename_inherited_class.cpp
-class Base {
+class Class {
 public:
   void method() {}
 };
 
-class Derived : public Base {};
+class Derived : public Class {};
 
 void func() {
   Derived obj;
