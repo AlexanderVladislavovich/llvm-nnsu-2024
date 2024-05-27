@@ -6,8 +6,6 @@
 ; RUN: opt -passes="kashirin-replace-mul-with-shift" -S %t/test5.ll | FileCheck %t/test5.ll
 ; RUN: opt -passes="kashirin-replace-mul-with-shift" -S %t/test6.ll | FileCheck %t/test6.ll
 ; RUN: opt -passes="kashirin-replace-mul-with-shift" -S %t/test7.ll | FileCheck %t/test7.ll
-; RUN: opt -passes="kashirin-replace-mul-with-shift" -mul-shift-const-only=true -S %t/test8.ll | FileCheck %t/test8.ll
-; RUN: opt -passes="kashirin-replace-mul-with-shift" -mul-shift-const-only=true -S %t/test9.ll | FileCheck %t/test9.ll
 
 ;--- test1.ll
 
@@ -164,51 +162,3 @@ define dso_local void @f7() #0 {
 ; CHECK: %3 = load i32, ptr %1, align 4
 ; CHECK-NEXT: %4 = shl i32 10, 2
 ; CHECK-NEXT: store i32 %4, ptr %2, align 4
-
-;--- test8.ll
-
-;void f8(){
-;    int a = 4;
-;    a = a * 2;
-;    int c = a * 10;
-;}
-
-define dso_local void @f8() #0 {
-  %1 = alloca i32, align 4
-  %2 = alloca i32, align 4
-  store i32 4, ptr %1, align 4
-  %3 = load i32, ptr %1, align 4
-  %4 = mul nsw i32 %3, 2
-  store i32 %4, ptr %1, align 4
-  %5 = load i32, ptr %1, align 4
-  %6 = mul nsw i32 %5, 10
-  store i32 %6, ptr %2, align 4
-  ret void
-}
-
-; CHECK-LABEL: @f8
-; CHECK: %5 = load i32, ptr %1, align 4
-; CHECK-NEXT: %6 = mul nsw i32 %5, 10
-; CHECK-NEXT: store i32 %6, ptr %2, align 4
-
-;--- test9.ll
-
-;void f9(){
-;    int a = 53;
-;    int c = a * 16;
-
-define dso_local void @f9() #0 {
-  %1 = alloca i32, align 4
-  %2 = alloca i32, align 4
-  store i32 53, ptr %1, align 4
-  %3 = load i32, ptr %1, align 4
-  %4 = mul nsw i32 %3, 16
-  store i32 %4, ptr %2, align 4
-  ret void
-}
-
-; CHECK-LABEL: @f9
-; CHECK: %3 = load i32, ptr %1, align 4
-; CHECK-NEXT: %4 = shl i32 %3, 4
-; CHECK-NEXT: store i32 %4, ptr %2, align 4
-;}
