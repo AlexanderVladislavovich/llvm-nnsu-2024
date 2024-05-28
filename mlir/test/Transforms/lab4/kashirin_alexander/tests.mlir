@@ -42,4 +42,3 @@ func.func @func3() {
   }
   func.return
 }
-llvm-nnsu-2024/mlir at lab-4 · nastosimys/llvm-nnsu-2024
