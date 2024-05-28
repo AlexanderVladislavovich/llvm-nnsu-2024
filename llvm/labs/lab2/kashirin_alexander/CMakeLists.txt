@@ -1,25 +1,12 @@
-set(Title "ReplaceMul")
-set(Student "KashirinAlexander")
-set(Group "FI1")
-set(PluginName "${Title}${Student}${Group}")
-
 if (NOT WIN32 AND NOT CYGWIN)
-  file(GLOB_RECURSE ALL_SOURCE_FILES *.cpp *.h *.hpp)
+  set(PluginName KashirinMulToBitShiftPlugin)
 
+  file(GLOB_RECURSE ALL_SOURCE_FILES *.cpp *.h)
   add_llvm_pass_plugin(${PluginName} 
-    ${ALL_SOURCE_FILES}     
-    DEPENDS
-    intrinsics_gen
-    BUILDTREE_ONLY
-    )
-
-  target_link_libraries(${PluginName}
-    PUBLIC
-    LLVMSupport
-    LLVMCore
-    LLVMipo
-    LLVMPasses
-    )
+  ${ALL_SOURCE_FILES}     
+  DEPENDS
+  intrinsics_gen
+  BUILDTREE_ONLY)
 
   set(LLVM_TEST_DEPENDS ${PluginName} ${LLVM_TEST_DEPENDS} PARENT_SCOPE)
 endif()

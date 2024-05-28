@@ -1,116 +1,70 @@
-#include "llvm/IR/BasicBlock.h"
-#include "llvm/IR/Function.h"
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/Pass.h"
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/Passes/PassPlugin.h"
-#include "llvm/Support/CommandLine.h"
+#include "llvm/Transforms/Utils/BasicBlockUtils.h"
 
-static llvm::cl::opt<bool> MulShiftConstOnly(
-    "mul-shift-const-only", llvm::cl::init(false),
-    llvm::cl::desc(
-        "Limit mul-to-shl replacement to constant pow_of_two operands"));
+using namespace llvm;
 
 namespace {
-struct ReplaceMulWithShift : llvm::PassInfoMixin<ReplaceMulWithShift> {
+class KashirinBitShiftPass : public PassInfoMixin<KashirinBitShiftPass> {
 public:
-  llvm::PreservedAnalyses run(llvm::Function &Func,
-                              llvm::FunctionAnalysisManager &FAM) {
-    std::vector<llvm::Instruction *> toRemove;
-    bool changed = false;
-    for (llvm::BasicBlock &BB : Func) {
-      for (llvm::Instruction &Inst : BB) {
-        if (!llvm::BinaryOperator::classof(&Inst)) {
-          continue;
-        }
-        llvm::BinaryOperator *op = llvm::cast<llvm::BinaryOperator>(&Inst);
-        if (op->getOpcode() != llvm::Instruction::BinaryOps::Mul) {
+  PreservedAnalyses run(llvm::Function &F, llvm::FunctionAnalysisManager &AM) {
+    for (auto &BB : F) {
+      for (auto InstIt = BB.begin(); InstIt != BB.end(); InstIt++) {
+        if (InstIt->getOpcode() != Instruction::Mul) {
           continue;
         }
 
-        llvm::Value *leftOper = op->getOperand(0);
-        llvm::Value *rightOper = op->getOperand(1);
+        auto *Op = dyn_cast<BinaryOperator>(InstIt);
+        Value *LVal = Op->getOperand(0);
+        Value *RVal = Op->getOperand(1);
 
-        int logVal1 = getLogBase2(leftOper);
-        int logVal2 = getLogBase2(rightOper);
-        if (logVal1 < logVal2) {
-          std::swap(logVal1, logVal2);
-          std::swap(leftOper, rightOper);
+        int LLog = getLog2(LVal);
+        int RLog = getLog2(RVal);
+
+        if (RLog < LLog) {
+          std::swap(LLog, RLog);
+          std::swap(LVal, RVal);
         }
-
-        if (MulShiftConstOnly && !llvm::isa<llvm::ConstantInt>(leftOper)) {
+        if (RLog < 0) {
           continue;
         }
 
-        if (logVal1 > -1) {
-          llvm::Value *lg_val = llvm::ConstantInt::get(
-              llvm::IntegerType::get(Func.getContext(), 32),
-              llvm::APInt(32, logVal1));
-
-          llvm::Value *val = llvm::BinaryOperator::Create(
-              llvm::Instruction::Shl, rightOper, lg_val, op->getName(), op);
-
-          op->replaceAllUsesWith(val);
-          toRemove.push_back(op);
-          changed = true;
-        }
-      }
-      for (auto *I : toRemove) {
-        I->eraseFromParent();
+        IRBuilder<> Builder(Op);
+        Value *NewVal =
+            Builder.CreateShl(LVal, ConstantInt::get(Op->getType(), RLog));
+        ReplaceInstWithValue(InstIt, NewVal);
       }
     }
-
-    if (changed)
-      return llvm::PreservedAnalyses::none();
-    return llvm::PreservedAnalyses::all();
+    return PreservedAnalyses::all();
   }
 
-private:
-  int getLogBase2(llvm::Value *val) {
-    if (llvm::ConstantInt *CI = llvm::dyn_cast<llvm::ConstantInt>(val)) {
+  int getLog2(llvm::Value *Op) {
+    if (auto *CI = dyn_cast<ConstantInt>(Op)) {
       return CI->getValue().exactLogBase2();
     }
-    if (auto *LI = llvm::dyn_cast<llvm::LoadInst>(val)) {
-      llvm::Value *Op = LI->getPointerOperand();
-      Op->reverseUseList();
-      llvm::StoreInst *StInst = nullptr;
-      for (auto *Inst : Op->users()) {
-        if (auto *SI = llvm::dyn_cast<llvm::StoreInst>(Inst)) {
-          StInst = SI;
-        }
-        if (Inst == LI) {
-          break;
-        }
-      }
-      Op->reverseUseList();
-      if (!StInst) {
-        return -2;
-      }
-      if (auto *CI =
-              llvm::dyn_cast<llvm::ConstantInt>(StInst->getValueOperand())) {
-        return CI->getValue().exactLogBase2();
-      }
-    }
-    return -2;
+    return -1;
   }
 };
 } // namespace
 
-llvm::PassPluginLibraryInfo getReplaceMulKashirinAlexanderFI1PluginInfo() {
-  return {LLVM_PLUGIN_API_VERSION, "KashirinReplaceMulWithShift", "0.1",
-          [](llvm::PassBuilder &PB) {
-            PB.registerPipelineParsingCallback(
-                [](llvm::StringRef Name, llvm::FunctionPassManager &PM,
-                   llvm::ArrayRef<llvm::PassBuilder::PipelineElement>) {
-                  if (Name == "kashirin-replace-mul-with-shift") {
-                    PM.addPass(ReplaceMulWithShift());
-                    return true;
-                  }
-                  return false;
-                });
+bool registerPipeLine(llvm::StringRef Name, llvm::FunctionPassManager &FPM,
+                      llvm::ArrayRef<llvm::PassBuilder::PipelineElement>) {
+  if (Name == "KashirinMulToBitShiftPlugin") {
+    FPM.addPass(KashirinBitShiftPass());
+    return true;
+  }
+  return false;
+}
+
+PassPluginLibraryInfo getKashirinMulToBitShiftPluginInfo() {
+  return {LLVM_PLUGIN_API_VERSION, "KashirinMulToBitShiftPlugin",
+          LLVM_VERSION_STRING, [](PassBuilder &PB) {
+            PB.registerPipelineParsingCallback(registerPipeLine);
           }};
 }
-extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo
-llvmGetPassPluginInfo() {
-  return getReplaceMulKashirinAlexanderFI1PluginInfo();
+
+#ifndef LLVM_KASHIRINMULTOBITSHIFTPLUGIN_LINK_INTO_TOOLS
+extern "C" LLVM_ATTRIBUTE_WEAK PassPluginLibraryInfo llvmGetPassPluginInfo() {
+  return getKashirinMulToBitShiftPluginInfo();
 }
+#endif
