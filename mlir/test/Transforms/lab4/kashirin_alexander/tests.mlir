@@ -34,7 +34,6 @@ func.func @func3() {
   %4 = arith.cmpi sgt, %c5, %0 : i32
   %cond = arith.constant 1 : i1
   %cond2 = arith.constant 1 : i1
-  %11 = arith.constant 1 : i32
   %10 = scf.if %cond  -> (i32) {
     %5 = arith.cmpi sgt, %c3, %0 : i32
     %11 = scf.if %cond2 -> (i32) {
