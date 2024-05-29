@@ -25,20 +25,29 @@ func.func @func2() {
 //--- func3.mlir
 func.func @func3() {
 // CHECK: func.func @func3() attributes {maxDepth = 3 : i32}
-  %c3_i32 = arith.constant 3 : i32
-  %c5_i32 = arith.constant 5 : i32
+  %c3 = arith.constant 3 : i32
+  %c5 = arith.constant 5 : i32
   %0 = arith.constant 0 : i32
   %1 = arith.constant 1 : i32
-  %2 = arith.subi %c5_i32, %1 : i32
-  %3 = arith.subi %c3_i32, %1 : i32
-  %4 = arith.cmpi sgt, %c5_i32, %0 : i32
-  scf.if %4 {
-    %5 = arith.cmpi sgt, %c3_i32, %0 : i32
-    scf.if %5 {
-      %6 = arith.subi %c5_i32, %1 : i32
+  %2 = arith.subi %c5, %1 : i32
+  %3 = arith.subi %c3, %1 : i32
+  %4 = arith.cmpi sgt, %c5, %0 : i32
+  %cond = arith.constant 1 : i1
+  %cond2 = arith.constant 1 : i1
+  %11 = arith.constant 1 : i32
+  %10 = scf.if %cond  -> (i32) {
+    %5 = arith.cmpi sgt, %c3, %0 : i32
+    %11 = scf.if %cond2 -> (i32) {
+      %6 = arith.subi %c5, %1 : i32
       %7 = arith.subi %3, %1 : i32
+      scf.yield %7 : i32
+    } else {
+      %8 = arith.subi %3, %1 : i32
+      scf.yield %8 : i32
     }
-    %8 = arith.subi %3, %1 : i32
+    scf.yield %11 : i32
+  } else {
+    scf.yield %0 : i32
   }
   func.return
 }
