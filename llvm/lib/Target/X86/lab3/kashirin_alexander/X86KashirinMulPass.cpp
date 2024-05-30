@@ -46,6 +46,14 @@ namespace {
             }
           }
 
+          for (auto Next = std::next(AddInstr); Next != MBB.end(); ++Next) {
+            if (Next->getOperand(1).getReg() == MulDestReg ||
+                Next->getOperand(2).getReg() == MulDestReg) {
+              AddInstr = nullptr;
+              break;
+            }
+          }
+
           if (AddInstr && MulDestReg != AddInstr->getOperand(2).getReg()) {
             toReplace.emplace_back(MulInstr, AddInstr);
           }
