@@ -55,11 +55,12 @@ func.func @func3() {
 
 //--- func4.mlir
 llvm.func @func4() -> i1 {
+// CHECK: llvm.func @func4() attributes {maxDepth = 2 : i32}
   %cond = arith.constant 1 : i1
   %0 = scf.if %cond -> (i1) {
     scf.yield %cond : i1
   } else {
     scf.yield %cond : i1
   }
-  return %0 : i1
+  func.return %0 : i1
 }
