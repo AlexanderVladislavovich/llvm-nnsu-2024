@@ -2,6 +2,8 @@
 // RUN: mlir-opt -load-pass-plugin=%mlir_lib_dir/KashirinMaxDepthPass%shlibext --pass-pipeline="builtin.module(func.func(KashirinMaxDepthPass))" %t/func1.mlir | FileCheck %t/func1.mlir
 // RUN: mlir-opt -load-pass-plugin=%mlir_lib_dir/KashirinMaxDepthPass%shlibext --pass-pipeline="builtin.module(func.func(KashirinMaxDepthPass))" %t/func2.mlir | FileCheck %t/func2.mlir
 // RUN: mlir-opt -load-pass-plugin=%mlir_lib_dir/KashirinMaxDepthPass%shlibext --pass-pipeline="builtin.module(func.func(KashirinMaxDepthPass))" %t/func3.mlir | FileCheck %t/func3.mlir
+// RUN: mlir-opt -load-pass-plugin=%mlir_lib_dir/KashirinMaxDepthPass%shlibext --pass-pipeline="builtin.module(llvm.func(KashirinMaxDepthPass))" %t/func4.mlir | FileCheck %t/func4.mlir
+
 
 //--- func1.mlir
 func.func @func1(%arg0: i32) -> i32 {
@@ -49,4 +51,15 @@ func.func @func3() {
     scf.yield %0 : i32
   }
   func.return
+}
+
+//--- func4.mlir
+llvm.func @func4() -> i1 {
+  %cond = arith.constant 1 : i1
+  %0 = scf.if %cond -> (i1) {
+    scf.yield %cond : i1
+  } else {
+    scf.yield %cond : i1
+  }
+  return %0 : i1
 }
