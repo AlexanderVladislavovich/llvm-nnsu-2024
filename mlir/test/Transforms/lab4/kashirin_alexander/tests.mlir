@@ -56,7 +56,7 @@ func.func @func3() {
 //--- func4.mlir
 llvm.func @func4() {
 // CHECK: llvm.func @func4() attributes {maxDepth = 2 : i32}
-  %cond = llvm.constant 1 : i1
+  %cond = llvm.mlir.constant(1) : i1
     %0 = llvm.if %cond -> (i1) {
         llvm.yield %cond : i1
     } else {
