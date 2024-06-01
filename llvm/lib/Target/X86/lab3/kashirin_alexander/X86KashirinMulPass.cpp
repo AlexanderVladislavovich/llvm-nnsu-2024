@@ -35,27 +35,44 @@ namespace {
             MulInstr->getOpcode() == X86::MULPDrm) {
           MachineInstr *AddInstr = nullptr;
           Register MulDestReg = MulInstr->getOperand(0).getReg();
-
           bool flag = false;
-          for (auto Next = std::next(Instr); Next != MBB.end(); ++Next) {
-            if (Next->getOperand(1).getReg() == MulDestReg ||
-                Next->getOperand(2).getReg() == MulDestReg) {
+          bool isAddInstrFound = false;
+
+          for (auto NextInstr = std::next(Instr); NextInstr != MBB.end();
+               ++NextInstr) {
+            if (!(NextInstr->getOpcode() == X86::ADDPDrr ||
+                NextInstr->getOpcode() == X86::ADDPDrm) &&
+                (MulDestReg == NextInstr->getOperand(1).getReg() ||
+                MulDestReg == NextInstr->getOperand(2).getReg())) {
+              
+              flag = true;
+              break;
+            } else if ((NextInstr->getOpcode() == X86::ADDPDrr ||
+                 NextInstr->getOpcode() == X86::ADDPDrm) &&
+                 MulDestReg == NextInstr->getOperand(1).getReg() &&
+                 !isAddInstrFound) {
+              AddInstr = &(*NextInstr);
+              isAddInstrFound = true;
+              //break;
+            } else if (isAddInstrFound && 
+              (NextInstr->getOperand(1).getReg() == MulDestReg ||
+              NextInstr->getOperand(2).getReg() == MulDestReg)) {
               flag = true;
               break;
             }
           }
-          if (flag == true) {
-            continue;
-          }
 
-          for (auto NextInstr = std::next(Instr); NextInstr != MBB.end();
-               ++NextInstr) {
-            if ((NextInstr->getOpcode() == X86::ADDPDrr ||
-                 NextInstr->getOpcode() == X86::ADDPDrm) &&
-                MulDestReg == NextInstr->getOperand(1).getReg()) {
-              AddInstr = &(*NextInstr);
+          
+        /*  for (auto Next = std::next(Instr); Next != MBB.end(); ++Next) {
+            if ((Next->getOperand(1).getReg() == MulDestReg ||
+                 Next->getOperand(2).getReg() == MulDestReg) &&
+                Next->getOpcode == X86::ADDPDrr) {
+              flag = true;
               break;
             }
+          }*/
+          if (flag == true) {
+            continue;
           }
 
           if (AddInstr && MulDestReg != AddInstr->getOperand(2).getReg()) {
