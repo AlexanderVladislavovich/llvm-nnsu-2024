@@ -34,27 +34,31 @@ namespace {
         if (MulInstr->getOpcode() == X86::MULPDrr ||
             MulInstr->getOpcode() == X86::MULPDrm) {
           MachineInstr *AddInstr = nullptr;
-          Register MulDestReg = MulInstr->getOperand(2).getReg();
+          Register MulDestReg = MulInstr->getOperand(0).getReg();
+
+          bool flag = false;
+          for (auto Next = std::next(Instr); Next != MBB.end(); ++Next) {
+            if (Next->getOperand(1) == MulDestReg ||
+                Next->getOperand(2) == MulDestReg) {
+              flag = true;
+              break;
+            }
+          }
+          if (flag == true) {
+            continue;
+          }
 
           for (auto NextInstr = std::next(Instr); NextInstr != MBB.end();
                ++NextInstr) {
             if ((NextInstr->getOpcode() == X86::ADDPDrr ||
                  NextInstr->getOpcode() == X86::ADDPDrm) &&
-                MulDestReg == NextInstr->getOperand(0).getReg()) {
+                MulDestReg == NextInstr->getOperand(1).getReg()) {
               AddInstr = &(*NextInstr);
               break;
             }
           }
 
-          for (auto Next = std::next(AddInstr); Next != MBB.end(); ++Next) {
-            if (Next->getOperand(1).getReg() == MulDestReg ||
-                Next->getOperand(0).getReg() == MulDestReg) {
-              AddInstr = nullptr;
-              break;
-            }
-          }
-
-          if (AddInstr && MulDestReg != AddInstr->getOperand(1).getReg()) {
+          if (AddInstr && MulDestReg != AddInstr->getOperand(2).getReg()) {
             toReplace.emplace_back(MulInstr, AddInstr);
           }
         } 
@@ -65,11 +69,11 @@ namespace {
       MachineBasicBlock &MBB = *MulInstr->getParent();
       MIMetadata MetaData(*MulInstr);
 
-      BuildMI(MBB, MulInstr, MetaData, TII->get(X86::VFMADD213PDr))
-          .addReg(AddInstr->getOperand(2).getReg(), RegState::Define)
+      BuildMI(MBB, MulInstr, MetaData, TII->get(X86::VFMADD213PDr),
+              AddInstr->getOperand(0).getReg())
           .addReg(MulInstr->getOperand(1).getReg())
           .addReg(MulInstr->getOperand(2).getReg())
-          .addReg(AddInstr->getOperand(1).getReg());
+          .addReg(AddInstr->getOperand(2).getReg());
 
       MulInstr->eraseFromParent();
       AddInstr->eraseFromParent();
