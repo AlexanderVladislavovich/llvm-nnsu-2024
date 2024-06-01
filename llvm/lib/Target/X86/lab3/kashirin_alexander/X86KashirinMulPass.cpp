@@ -38,8 +38,8 @@ namespace {
 
           bool flag = false;
           for (auto Next = std::next(Instr); Next != MBB.end(); ++Next) {
-            if (Next->getOperand(1) == MulDestReg ||
-                Next->getOperand(2) == MulDestReg) {
+            if (Next->getOperand(1).getReg() == MulDestReg ||
+                Next->getOperand(2).getReg() == MulDestReg) {
               flag = true;
               break;
             }
