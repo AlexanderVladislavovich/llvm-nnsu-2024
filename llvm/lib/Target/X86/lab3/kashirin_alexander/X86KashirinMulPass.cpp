@@ -51,7 +51,7 @@ namespace {
             MulInstr->getOpcode() == X86::MULPDrm) {
           MachineInstr *AddInstr = nullptr;
           Register MulDestReg = MulInstr->getOperand(0).getReg();
-          bool flag = false;
+          //bool flag = false;
           //bool isAddInstrFound = false;
 
 
@@ -60,7 +60,8 @@ namespace {
             if (NextInstr->getOpcode() == X86::ADDPDrr ||
                  NextInstr->getOpcode() == X86::ADDPDrm) {
               if (MulDestReg == NextInstr->getOperand(1).getReg()) {
-                bool dep = hasDependency(MBB, NextInstr, MulDestReg);
+                bool dep = false; 
+                //dep = hasDependency(MBB, NextInstr, MulDestReg);
                 if (!dep) {
                   AddInstr = &(*NextInstr);
                   break;
