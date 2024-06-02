@@ -25,7 +25,7 @@ namespace {
   };
 
   
-   bool hasDependency(const MachineBasicBlock &MBB,
+   bool X86KashirinMulPass::hasDependency(const MachineBasicBlock &MBB,
                      MachineBasicBlock::iterator NextMI, Register Reg) {
     if (NextMI->getOperand(0).getReg() != Reg) {
       for (auto CheckMI = std::next(NextMI); CheckMI != MBB.end(); ++CheckMI) {
@@ -35,7 +35,7 @@ namespace {
       }
     }
     return false;
-  }
+   }
 
   bool X86KashirinMulPass::runOnMachineFunction(MachineFunction &MF) {
     bool modified = false;
@@ -61,7 +61,7 @@ namespace {
                  NextInstr->getOpcode() == X86::ADDPDrm) {
               if (MulDestReg == NextInstr->getOperand(1).getReg()) {
                 bool dep = false; 
-                //dep = hasDependency(MBB, NextInstr, MulDestReg);
+                dep = hasDependency(MBB, NextInstr, MulDestReg);
                 if (!dep) {
                   AddInstr = &(*NextInstr);
                   break;
