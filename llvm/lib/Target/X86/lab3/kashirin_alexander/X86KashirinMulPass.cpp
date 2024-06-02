@@ -22,15 +22,23 @@ namespace {
 
     bool hasDependency(const MachineBasicBlock &MBB,
                        MachineBasicBlock::iterator NextMI, Register Reg);
+    bool hasOperand(MachineBasicBlock::iterator MI, Register Reg);
   };
 
+   bool X86KashirinMulPass::hasOperand(MachineBasicBlock::iterator MI,
+                                      Register Reg) {
+    for (unsigned i = 0, e = MI->getNumOperands(); i != e; ++i) {
+      if (MI->getOperand(i).getReg() == Reg)
+        return true;
+    }
+    return false;
+  }
   
    bool X86KashirinMulPass::hasDependency(const MachineBasicBlock &MBB,
                      MachineBasicBlock::iterator NextMI, Register Reg) {
     if (NextMI->getOperand(0).getReg() != Reg) {
       for (auto CheckMI = std::next(NextMI); CheckMI != MBB.end(); ++CheckMI) {
-        if (CheckMI->getOperand(1).getReg() == Reg ||
-            CheckMI->getOperand(2).getReg() == Reg)
+        if (hasOperand(NextMI, Reg))
           return true;
       }
     }
