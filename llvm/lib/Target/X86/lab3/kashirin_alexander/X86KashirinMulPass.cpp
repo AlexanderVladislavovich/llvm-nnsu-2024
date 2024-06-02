@@ -35,17 +35,27 @@ namespace {
             MulInstr->getOpcode() == X86::MULPDrm) {
           MachineInstr *AddInstr = nullptr;
           Register MulDestReg = MulInstr->getOperand(0).getReg();
-          //bool flag = false;
+          bool flag = false;
           //bool isAddInstrFound = false;
 
 
           for (auto NextInstr = std::next(Instr); NextInstr != MBB.end();
                ++NextInstr) {
-            if ((NextInstr->getOpcode() == X86::ADDPDrr ||
-                 NextInstr->getOpcode() == X86::ADDPDrm) &&
-                MulDestReg == NextInstr->getOperand(1).getReg()) {
-              AddInstr = &(*NextInstr);
-              break;
+            if (NextInstr->getOpcode() == X86::ADDPDrr ||
+                 NextInstr->getOpcode() == X86::ADDPDrm) {
+              if (MulDestReg == NextInstr->getOperand(1).getReg()) {
+                bool dep = hasDependency(MBB, NextInstr, MulDestReg);
+                if (!dep) {
+                  AddInstr = &(*NextInstr);
+                  break;
+                }
+              
+              }
+             
+            } else if (NextInstr->getOperand(1).getReg() == MulDestReg ||
+              NextInstr->getOperand(2).getReg() == MulDestReg) {
+              //flag = true;
+              break;            
             }
           }
 
@@ -82,7 +92,7 @@ namespace {
               break;
             }
           }*/
-          /*if (flag == true) {
+       /*   if (flag == true) {
             continue;
           }*/
 
@@ -112,16 +122,17 @@ namespace {
     return modified;
   }
 
- /*  bool hasDependency(const MachineBasicBlock &MBB,
+   bool hasDependency(const MachineBasicBlock &MBB,
                        MachineBasicBlock::iterator NextMI, Register Reg) {
     if (NextMI->getOperand(0).getReg() != Reg) {
       for (auto CheckMI = std::next(NextMI); CheckMI != MBB.end(); ++CheckMI) {
-        if (hasOperand(CheckMI, Reg))
+        if (CheckMI->getOperand(1).getReg() == Reg ||
+          CheckMI->getOperand(2).getReg() == Reg)
           return true;
       }
     }
     return false;
-  }*/
+  }
 
   char X86KashirinMulPass::ID = 0;
 }
