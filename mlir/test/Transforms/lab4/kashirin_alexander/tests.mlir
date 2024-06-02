@@ -62,5 +62,5 @@ llvm.func @func4() {
     } else {
         scf.yield %cond : i1
     }
-    scf.return
+    llvm.return
 }
