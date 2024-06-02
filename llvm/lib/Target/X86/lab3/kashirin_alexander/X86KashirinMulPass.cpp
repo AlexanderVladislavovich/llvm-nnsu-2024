@@ -77,8 +77,7 @@ namespace {
               
               }
              
-            } else if (NextInstr->getOperand(1).getReg() == MulDestReg ||
-              NextInstr->getOperand(2).getReg() == MulDestReg) {
+            } else if (hasOperand(NextInstr, MulDestReg)) {
               //flag = true;
               break;            
             }
