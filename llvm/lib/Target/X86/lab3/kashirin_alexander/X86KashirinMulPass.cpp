@@ -35,32 +35,43 @@ namespace {
             MulInstr->getOpcode() == X86::MULPDrm) {
           MachineInstr *AddInstr = nullptr;
           Register MulDestReg = MulInstr->getOperand(0).getReg();
-          bool flag = false;
-          bool isAddInstrFound = false;
+          //bool flag = false;
+          //bool isAddInstrFound = false;
+
 
           for (auto NextInstr = std::next(Instr); NextInstr != MBB.end();
                ++NextInstr) {
-            if (!(NextInstr->getOpcode() == X86::ADDPDrr ||
-                NextInstr->getOpcode() == X86::ADDPDrm) &&
-                (MulDestReg == NextInstr->getOperand(1).getReg() ||
-                MulDestReg == NextInstr->getOperand(2).getReg())) {
-              
-              flag = true;
-              break;
-            } else if ((NextInstr->getOpcode() == X86::ADDPDrr ||
+            if ((NextInstr->getOpcode() == X86::ADDPDrr ||
                  NextInstr->getOpcode() == X86::ADDPDrm) &&
-                 MulDestReg == NextInstr->getOperand(1).getReg() &&
-                 !isAddInstrFound) {
+                MulDestReg == NextInstr->getOperand(1).getReg()) {
               AddInstr = &(*NextInstr);
-              isAddInstrFound = true;
-              //break;
-            } else if (isAddInstrFound && 
-              (NextInstr->getOperand(1).getReg() == MulDestReg ||
-              NextInstr->getOperand(2).getReg() == MulDestReg)) {
-              flag = true;
               break;
             }
           }
+
+          //for (auto NextInstr = std::next(Instr); NextInstr != MBB.end();
+          //     ++NextInstr) {
+          //  if (!(NextInstr->getOpcode() == X86::ADDPDrr ||
+          //      NextInstr->getOpcode() == X86::ADDPDrm) &&
+          //      (MulDestReg == NextInstr->getOperand(1).getReg() ||
+          //      MulDestReg == NextInstr->getOperand(2).getReg())) {
+          //    
+          //    flag = true;
+          //    break;
+          //  } else if ((NextInstr->getOpcode() == X86::ADDPDrr ||
+          //       NextInstr->getOpcode() == X86::ADDPDrm) &&
+          //       MulDestReg == NextInstr->getOperand(1).getReg() &&
+          //       !isAddInstrFound) {
+          //    AddInstr = &(*NextInstr);
+          //    isAddInstrFound = true;
+          //    //break;
+          //  } else if (isAddInstrFound && 
+          //    (NextInstr->getOperand(1).getReg() == MulDestReg ||
+          //    NextInstr->getOperand(2).getReg() == MulDestReg)) {
+          //    flag = true;
+          //    break;
+          //  }
+          //}
 
           
         /*  for (auto Next = std::next(Instr); Next != MBB.end(); ++Next) {
@@ -71,9 +82,9 @@ namespace {
               break;
             }
           }*/
-          if (flag == true) {
+          /*if (flag == true) {
             continue;
-          }
+          }*/
 
           if (AddInstr && MulDestReg != AddInstr->getOperand(2).getReg()) {
             toReplace.emplace_back(MulInstr, AddInstr);
@@ -101,7 +112,16 @@ namespace {
     return modified;
   }
 
-
+ /*  bool hasDependency(const MachineBasicBlock &MBB,
+                       MachineBasicBlock::iterator NextMI, Register Reg) {
+    if (NextMI->getOperand(0).getReg() != Reg) {
+      for (auto CheckMI = std::next(NextMI); CheckMI != MBB.end(); ++CheckMI) {
+        if (hasOperand(CheckMI, Reg))
+          return true;
+      }
+    }
+    return false;
+  }*/
 
   char X86KashirinMulPass::ID = 0;
 }
