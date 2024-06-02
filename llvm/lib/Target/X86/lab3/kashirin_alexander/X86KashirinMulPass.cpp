@@ -19,7 +19,23 @@ namespace {
     X86KashirinMulPass() : MachineFunctionPass(ID) {}
 
     bool runOnMachineFunction(MachineFunction &MF) override;
+
+    bool hasDependency(const MachineBasicBlock &MBB,
+                       MachineBasicBlock::iterator NextMI, Register Reg);
   };
+
+  
+   bool hasDependency(const MachineBasicBlock &MBB,
+                     MachineBasicBlock::iterator NextMI, Register Reg) {
+    if (NextMI->getOperand(0).getReg() != Reg) {
+      for (auto CheckMI = std::next(NextMI); CheckMI != MBB.end(); ++CheckMI) {
+        if (CheckMI->getOperand(1).getReg() == Reg ||
+            CheckMI->getOperand(2).getReg() == Reg)
+          return true;
+      }
+    }
+    return false;
+  }
 
   bool X86KashirinMulPass::runOnMachineFunction(MachineFunction &MF) {
     bool modified = false;
@@ -122,17 +138,6 @@ namespace {
     return modified;
   }
 
-   bool hasDependency(const MachineBasicBlock &MBB,
-                       MachineBasicBlock::iterator NextMI, Register Reg) {
-    if (NextMI->getOperand(0).getReg() != Reg) {
-      for (auto CheckMI = std::next(NextMI); CheckMI != MBB.end(); ++CheckMI) {
-        if (CheckMI->getOperand(1).getReg() == Reg ||
-          CheckMI->getOperand(2).getReg() == Reg)
-          return true;
-      }
-    }
-    return false;
-  }
 
   char X86KashirinMulPass::ID = 0;
 }
