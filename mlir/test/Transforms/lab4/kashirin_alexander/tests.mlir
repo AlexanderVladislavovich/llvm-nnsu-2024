@@ -2,7 +2,7 @@
 // RUN: mlir-opt -load-pass-plugin=%mlir_lib_dir/KashirinMaxDepthPass%shlibext --pass-pipeline="builtin.module(func.func(KashirinMaxDepthPass))" %t/func1.mlir | FileCheck %t/func1.mlir
 // RUN: mlir-opt -load-pass-plugin=%mlir_lib_dir/KashirinMaxDepthPass%shlibext --pass-pipeline="builtin.module(func.func(KashirinMaxDepthPass))" %t/func2.mlir | FileCheck %t/func2.mlir
 // RUN: mlir-opt -load-pass-plugin=%mlir_lib_dir/KashirinMaxDepthPass%shlibext --pass-pipeline="builtin.module(func.func(KashirinMaxDepthPass))" %t/func3.mlir | FileCheck %t/func3.mlir
-// RUN: mlir-opt -load-pass-plugin=%mlir_lib_dir/KashirinMaxDepthPass%shlibext --pass-pipeline="builtin.module(llvm.func(KashirinMaxDepthPass))" %t/func4.mlir | FileCheck %t/func4.mlir
+// RUN: mlir-opt -load-pass-plugin=%mlir_lib_dir/KashirinMaxDepthPassLLVMfunc%shlibext --pass-pipeline="builtin.module(llvm.func(KashirinMaxDepthPassLLVMfunc))" %t/func4.mlir | FileCheck %t/func4.mlir
 
 
 //--- func1.mlir
