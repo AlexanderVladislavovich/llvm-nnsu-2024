@@ -13,7 +13,8 @@ using namespace mlir;
 
 namespace {
 class KashirinMaxDepthPass
-    : public PassWrapper<KashirinMaxDepthPass, OperationPass<func::FuncOp>> {
+    : public PassWrapper<KashirinMaxDepthPass,
+                         OperationPass<FunctionOpInterface>> {
 public:
   StringRef getArgument() const final { return "KashirinMaxDepthPass"; }
   StringRef getDescription() const final {
