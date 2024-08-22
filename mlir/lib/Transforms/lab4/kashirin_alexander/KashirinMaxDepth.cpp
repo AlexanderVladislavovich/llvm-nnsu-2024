@@ -83,12 +83,9 @@ MLIR_DEFINE_EXPLICIT_TYPE_ID(KashirinMaxDepthPassLLVMfunc)
 
 PassPluginLibraryInfo getFunctionCallCounterPassPluginInfo() {
   return {MLIR_PLUGIN_API_VERSION, "KashirinMaxDepthPass", LLVM_VERSION_STRING,
-          []() { PassRegistration<KashirinMaxDepthPass>(); }};
-}
-
-PassPluginLibraryInfo getFunctionCallCounterPassPluginInfo() {
-  return {MLIR_PLUGIN_API_VERSION, "KashirinMaxDepthPassLLVMfunc", LLVM_VERSION_STRING,
-          []() { PassRegistration<KashirinMaxDepthPassLLVMfunc>(); }};
+          []() { PassRegistration<KashirinMaxDepthPass>();
+            PassRegistration<KashirinMaxDepthPassLLVMfunc>();
+          }};
 }
 
 extern "C" LLVM_ATTRIBUTE_WEAK PassPluginLibraryInfo mlirGetPassPluginInfo() {
