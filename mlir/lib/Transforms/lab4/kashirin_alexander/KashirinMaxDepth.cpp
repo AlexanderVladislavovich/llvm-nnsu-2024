@@ -21,7 +21,11 @@ public:
     return "Counts the max depth of region nests in the function.";
   }
   void runOnOperation() override {
-    getOperation()->walk([&](Operation *op) {
+    auto funcOp = getOperation();
+    funcOp.walk([&](Operation *op) {
+      if (!isa<func::FuncOp>(op) && !isa<LLVM::LLVMFuncOp>(op))
+        return;
+
       std::stack<std::pair<Operation *, int>> stack;
       stack.push({op, 0});
       int maxDepth = 0;
