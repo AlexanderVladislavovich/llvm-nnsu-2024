@@ -21,11 +21,7 @@ public:
     return "Counts the max depth of region nests in the function.";
   }
   void runOnOperation() override {
-    /*auto funcOp = getOperation();
-    funcOp.walk([&](Operation *op) {
-      if (!isa<func::FuncOp>(op) && !isa<LLVM::LLVMFuncOp>(op))
-        return;*/
-
+    getOperation()->walk([&](Operation *op) {
       std::stack<std::pair<Operation *, int>> stack;
       stack.push({op, 0});
       int maxDepth = 0;
@@ -56,31 +52,27 @@ public:
     return "Counts the max depth of region nests in the function.";
   }
   void runOnOperation() override {
-    /*auto funcOp = getOperation();
-    funcOp.walk([&](Operation *op) {
-      if (!isa<func::FuncOp>(op) && !isa<LLVM::LLVMFuncOp>(op))
-        return;*/
-
-    std::stack<std::pair<Operation *, int>> stack;
-    stack.push({op, 0});
-    int maxDepth = 0;
-    while (!stack.empty()) {
-      auto [currentOp, depth] = stack.top();
-      stack.pop();
-      maxDepth = std::max(maxDepth, depth);
-      for (Region &region : currentOp->getRegions()) {
-        for (Block &block : region) {
-          for (Operation &op2 : block) {
-            stack.push({&op2, depth + 1});
+    getOperation()->walk([&](Operation *op) {
+      std::stack<std::pair<Operation *, int>> stack;
+      stack.push({op, 0});
+      int maxDepth = 0;
+      while (!stack.empty()) {
+        auto [currentOp, depth] = stack.top();
+        stack.pop();
+        maxDepth = std::max(maxDepth, depth);
+        for (Region &region : currentOp->getRegions()) {
+          for (Block &block : region) {
+            for (Operation &op2 : block) {
+              stack.push({&op2, depth + 1});
+            }
           }
         }
       }
-    }
-    op->setAttr(
-        "maxDepth",
-        IntegerAttr::get(IntegerType::get(op->getContext(), 32), maxDepth));
-  });
-}
+      op->setAttr(
+          "maxDepth",
+          IntegerAttr::get(IntegerType::get(op->getContext(), 32), maxDepth));
+    });
+  }
 };
 } // namespace
 
