@@ -53,18 +53,16 @@ func.func @func3() {
   func.return
 }
 
+
 //--- func4.mlir
 llvm.func @func4() {
-// CHECK: llvm.func @func4() attributes {maxDepth = 2 : i32}
-  %cond = llvm.mlir.constant(1) : i1
-  %0 = llvm.cond_br %cond, label %trueLabel, label %falseLabel
-
-trueLabel:
-  llvm.yield %cond : i1
-
-falseLabel:
-  llvm.yield %cond : i1
-
-llvm.return
-
+  // CHECK: llvm.func @func4() attributes {maxDepth = 2 : i32}
+  %cond = llvm.mlir.constant(1 : i1) : i1
+  llvm.cond_br %cond, ^then, ^else
+^then:
+  llvm.br ^cont(%cond : i1)
+^else:
+  llvm.br ^cont(%cond : i1)
+^cont(%0: i1):
+  llvm.return
 }
