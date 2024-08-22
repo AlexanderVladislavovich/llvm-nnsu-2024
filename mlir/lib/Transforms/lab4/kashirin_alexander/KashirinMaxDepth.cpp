@@ -14,17 +14,18 @@ using namespace mlir;
 namespace {
 class KashirinMaxDepthPass
     : public PassWrapper<KashirinMaxDepthPass,
-                         OperationPass<FunctionOpInterface>> {
+                          OperationPass<func::FuncOp>,
+                         OperationPass<LLVM::LLVMFuncOp>> {
 public:
   StringRef getArgument() const final { return "KashirinMaxDepthPass"; }
   StringRef getDescription() const final {
     return "Counts the max depth of region nests in the function.";
   }
   void runOnOperation() override {
-    auto funcOp = getOperation();
+    /*auto funcOp = getOperation();
     funcOp.walk([&](Operation *op) {
       if (!isa<func::FuncOp>(op) && !isa<LLVM::LLVMFuncOp>(op))
-        return;
+        return;*/
 
       std::stack<std::pair<Operation *, int>> stack;
       stack.push({op, 0});
