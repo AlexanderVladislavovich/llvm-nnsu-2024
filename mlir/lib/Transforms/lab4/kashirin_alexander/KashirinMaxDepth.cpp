@@ -79,7 +79,7 @@ public:
 MLIR_DECLARE_EXPLICIT_TYPE_ID(KashirinMaxDepthPass)
 MLIR_DEFINE_EXPLICIT_TYPE_ID(KashirinMaxDepthPass)
 MLIR_DECLARE_EXPLICIT_TYPE_ID(KashirinMaxDepthPassLLVMfunc)
-MLIR_DEFINE_EXPLICIT_TYPE_ID(KashirinMaxDepthPassLLVMfunc
+MLIR_DEFINE_EXPLICIT_TYPE_ID(KashirinMaxDepthPassLLVMfunc)
 
 PassPluginLibraryInfo getFunctionCallCounterPassPluginInfo() {
   return {MLIR_PLUGIN_API_VERSION, "KashirinMaxDepthPass", LLVM_VERSION_STRING,
