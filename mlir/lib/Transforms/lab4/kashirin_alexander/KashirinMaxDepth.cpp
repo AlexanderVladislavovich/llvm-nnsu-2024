@@ -88,17 +88,6 @@ PassPluginLibraryInfo getFunctionCallCounterPassPluginInfo() {
           }};
 }
 
-//PassPluginLibraryInfo getFunctionCallCounterPassPluginInfo2() {
-//  return {MLIR_PLUGIN_API_VERSION, "KashirinMaxDepthPassLLVMfunc", LLVM_VERSION_STRING,
-//          []() {
-//            PassRegistration<KashirinMaxDepthPassLLVMfunc>();
-//          }};
-//}
-
 extern "C" LLVM_ATTRIBUTE_WEAK PassPluginLibraryInfo mlirGetPassPluginInfo() {
   return getFunctionCallCounterPassPluginInfo();
 }
-
-//extern "C" LLVM_ATTRIBUTE_WEAK PassPluginLibraryInfo mlirGetPassPluginInfo2() {
-//  return getFunctionCallCounterPassPluginInfo2();
-//}
