@@ -42,14 +42,51 @@ public:
     });
   }
 };
+
+class KashirinMaxDepthPassLLVMfunc
+    : public PassWrapper<KashirinMaxDepthPassLLVMfunc,
+                         OperationPass<LLVM::LLVMFuncOp>> {
+public:
+  StringRef getArgument() const final { return "KashirinMaxDepthPassLLVMfunc"; }
+  StringRef getDescription() const final {
+    return "Counts the max depth of region nests in the function.";
+  }
+  void runOnOperation() override {
+    getOperation()->walk([&](Operation *op) {
+      std::stack<std::pair<Operation *, int>> stack;
+      stack.push({op, 0});
+      int maxDepth = 0;
+      while (!stack.empty()) {
+        auto [currentOp, depth] = stack.top();
+        stack.pop();
+        maxDepth = std::max(maxDepth, depth);
+        for (Region &region : currentOp->getRegions()) {
+          for (Block &block : region) {
+            for (Operation &op2 : block) {
+              stack.push({&op2, depth + 1});
+            }
+          }
+        }
+      }
+      op->setAttr(
+          "maxDepth",
+          IntegerAttr::get(IntegerType::get(op->getContext(), 32), maxDepth));
+    });
+  }
+};
 } // namespace
 
 MLIR_DECLARE_EXPLICIT_TYPE_ID(KashirinMaxDepthPass)
 MLIR_DEFINE_EXPLICIT_TYPE_ID(KashirinMaxDepthPass)
+MLIR_DECLARE_EXPLICIT_TYPE_ID(KashirinMaxDepthPassLLVMfunc)
+MLIR_DEFINE_EXPLICIT_TYPE_ID(KashirinMaxDepthPassLLVMfunc)
 
 PassPluginLibraryInfo getFunctionCallCounterPassPluginInfo() {
   return {MLIR_PLUGIN_API_VERSION, "KashirinMaxDepthPass", LLVM_VERSION_STRING,
-          []() { PassRegistration<KashirinMaxDepthPass>(); }};
+          []() {
+            PassRegistration<KashirinMaxDepthPass>();
+            PassRegistration<KashirinMaxDepthPassLLVMfunc>();
+          }};
 }
 
 extern "C" LLVM_ATTRIBUTE_WEAK PassPluginLibraryInfo mlirGetPassPluginInfo() {
