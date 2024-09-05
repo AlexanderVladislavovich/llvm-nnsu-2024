@@ -62,7 +62,6 @@ namespace {
           //bool flag = false;
           //bool isAddInstrFound = false;
 
-
           for (auto NextInstr = std::next(Instr); NextInstr != MBB.end();
                ++NextInstr) {
             if (NextInstr->getOpcode() == X86::ADDPDrr ||
