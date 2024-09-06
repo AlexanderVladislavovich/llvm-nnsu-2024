@@ -1,4 +1,3 @@
-
 #include "X86.h"
 #include "X86InstrInfo.h"
 #include "llvm/CodeGen/MachineBasicBlock.h"
@@ -12,142 +11,68 @@
 using namespace llvm;
 
 namespace {
-  class X86KashirinMulPass : public MachineFunctionPass {
-  public:
-    static char ID;
+class X86KashirinMulPass : public MachineFunctionPass {
+public:
+  static char ID;
 
-    X86KashirinMulPass() : MachineFunctionPass(ID) {}
+  X86KashirinMulPass() : MachineFunctionPass(ID) {}
 
-    bool runOnMachineFunction(MachineFunction &MF) override;
+  bool runOnMachineFunction(MachineFunction &MF) override;
+};
 
-    bool hasDependency(const MachineBasicBlock &MBB,
-                       MachineBasicBlock::iterator NextMI, Register Reg);
-    bool hasOperand(MachineBasicBlock::iterator MI, Register Reg);
-  };
+bool X86KashirinMulPass::runOnMachineFunction(MachineFunction &MF) {
+  bool modified = false;
 
-   bool X86KashirinMulPass::hasOperand(MachineBasicBlock::iterator MI,
-                                      Register Reg) {
-    for (unsigned i = 0, e = MI->getNumOperands(); i != e; ++i) {
-      if (MI->getOperand(i).getReg() == Reg)
-        return true;
-    }
-    return false;
-  }
-  
-   bool X86KashirinMulPass::hasDependency(const MachineBasicBlock &MBB,
-                     MachineBasicBlock::iterator NextMI, Register Reg) {
-    if (NextMI->getOperand(0).getReg() != Reg) {
-      for (auto CheckMI = std::next(NextMI); CheckMI != MBB.end(); ++CheckMI) {
-        if (hasOperand(NextMI, Reg))
-          return true;
+  const TargetInstrInfo *TII = MF.getSubtarget().getInstrInfo();
+  std::vector<std::pair<MachineInstr *, MachineInstr *>> toReplace;
+
+  for (MachineBasicBlock &MBB : MF) {
+    for (auto Instr = MBB.begin(); Instr != MBB.end(); ++Instr) {
+      MachineInstr *MulInstr = &(*Instr);
+
+      if (MulInstr->getOpcode() == X86::MULPDrr ||
+          MulInstr->getOpcode() == X86::MULPDrm) {
+        MachineInstr *AddInstr = nullptr;
+        Register MulDestReg = MulInstr->getOperand(0).getReg();
+
+        for (auto NextInstr = std::next(Instr); NextInstr != MBB.end();
+             ++NextInstr) {
+          if ((NextInstr->getOpcode() == X86::ADDPDrr ||
+               NextInstr->getOpcode() == X86::ADDPDrm) &&
+              MulDestReg == NextInstr->getOperand(1).getReg()) {
+            AddInstr = &(*NextInstr);
+            break;
+          }
+        }
+
+        if (AddInstr && MulDestReg != AddInstr->getOperand(2).getReg()) {
+          toReplace.emplace_back(MulInstr, AddInstr);
+        }
       }
     }
-    return false;
-   }
-
-  bool X86KashirinMulPass::runOnMachineFunction(MachineFunction &MF) {
-    bool modified = false;
-
-    const TargetInstrInfo *TII = MF.getSubtarget().getInstrInfo();
-    std::vector<std::pair<MachineInstr *, MachineInstr *>> toReplace;
-
-    for (MachineBasicBlock &MBB : MF) {
-      for (auto Instr = MBB.begin(); Instr != MBB.end(); ++Instr) {
-        MachineInstr *MulInstr = &(*Instr);
-
-        if (MulInstr->getOpcode() == X86::MULPDrr ||
-            MulInstr->getOpcode() == X86::MULPDrm) {
-          MachineInstr *AddInstr = nullptr;
-          Register MulDestReg = MulInstr->getOperand(0).getReg();
-          //bool flag = false;
-          //bool isAddInstrFound = false;
-
-          for (auto NextInstr = std::next(Instr); NextInstr != MBB.end();
-               ++NextInstr) {
-            if (NextInstr->getOpcode() == X86::ADDPDrr ||
-                 NextInstr->getOpcode() == X86::ADDPDrm) {
-              if (MulDestReg == NextInstr->getOperand(1).getReg()) {
-                bool dep = false; 
-                dep = hasDependency(MBB, NextInstr, MulDestReg);
-                if (!dep) {
-                  AddInstr = &(*NextInstr);
-                  break;
-                }
-              
-              }
-             
-            } else if (hasOperand(NextInstr, MulDestReg)) {
-              //flag = true;
-              break;            
-            }
-          }
-
-          //for (auto NextInstr = std::next(Instr); NextInstr != MBB.end();
-          //     ++NextInstr) {
-          //  if (!(NextInstr->getOpcode() == X86::ADDPDrr ||
-          //      NextInstr->getOpcode() == X86::ADDPDrm) &&
-          //      (MulDestReg == NextInstr->getOperand(1).getReg() ||
-          //      MulDestReg == NextInstr->getOperand(2).getReg())) {
-          //    
-          //    flag = true;
-          //    break;
-          //  } else if ((NextInstr->getOpcode() == X86::ADDPDrr ||
-          //       NextInstr->getOpcode() == X86::ADDPDrm) &&
-          //       MulDestReg == NextInstr->getOperand(1).getReg() &&
-          //       !isAddInstrFound) {
-          //    AddInstr = &(*NextInstr);
-          //    isAddInstrFound = true;
-          //    //break;
-          //  } else if (isAddInstrFound && 
-          //    (NextInstr->getOperand(1).getReg() == MulDestReg ||
-          //    NextInstr->getOperand(2).getReg() == MulDestReg)) {
-          //    flag = true;
-          //    break;
-          //  }
-          //}
-
-          
-        /*  for (auto Next = std::next(Instr); Next != MBB.end(); ++Next) {
-            if ((Next->getOperand(1).getReg() == MulDestReg ||
-                 Next->getOperand(2).getReg() == MulDestReg) &&
-                Next->getOpcode == X86::ADDPDrr) {
-              flag = true;
-              break;
-            }
-          }*/
-       /*   if (flag == true) {
-            continue;
-          }*/
-
-          if (AddInstr && MulDestReg != AddInstr->getOperand(2).getReg()) {
-            toReplace.emplace_back(MulInstr, AddInstr);
-          }
-        } 
-      }
-    }
-
-    for (auto &[MulInstr, AddInstr] : toReplace) {
-      MachineBasicBlock &MBB = *MulInstr->getParent();
-      MIMetadata MetaData(*MulInstr);
-
-      BuildMI(MBB, MulInstr, MetaData, TII->get(X86::VFMADD213PDr),
-              AddInstr->getOperand(0).getReg())
-          .addReg(MulInstr->getOperand(1).getReg())
-          .addReg(MulInstr->getOperand(2).getReg())
-          .addReg(AddInstr->getOperand(2).getReg());
-
-      MulInstr->eraseFromParent();
-      AddInstr->eraseFromParent();
-
-      modified = true;
-    }
-
-    return modified;
   }
 
+  for (auto &[MulInstr, AddInstr] : toReplace) {
+    MachineBasicBlock &MBB = *MulInstr->getParent();
+    MIMetadata MetaData(*MulInstr);
 
-  char X86KashirinMulPass::ID = 0;
+    BuildMI(MBB, MulInstr, MetaData, TII->get(X86::VFMADD213PDr),
+            AddInstr->getOperand(0).getReg())
+        .addReg(MulInstr->getOperand(1).getReg())
+        .addReg(MulInstr->getOperand(2).getReg())
+        .addReg(AddInstr->getOperand(2).getReg());
+
+    MulInstr->eraseFromParent(); 
+    AddInstr->eraseFromParent();
+
+    modified = true;
+  }
+
+  return modified;
 }
+
+char X86KashirinMulPass::ID = 0;
+} // namespace
 
 static RegisterPass<X86KashirinMulPass>
     X("x86-kashirin-mul-pass", "Multiply-Add Optimization Pass", false, false);
