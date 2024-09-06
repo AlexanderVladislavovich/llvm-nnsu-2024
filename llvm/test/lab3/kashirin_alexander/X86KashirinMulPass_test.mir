@@ -29,6 +29,17 @@
 #    return tmp + c;
 #}
 #
+#__m128d muladd6(__m128d a, __m128d b, __m128d c) {
+#    __m128d tmp = a * b;
+#    return c + a * b;
+#}
+#
+#__m128d muladd7(__m128d a, __m128d b, __m128d c) {
+#    __m128d tmp = a * b;
+#    __m128d tmp2 = tmp + c;
+#    return tmp + tmp2;
+#}
+#
 
 --- |
   ; ModuleID = 'tmp.ll'
@@ -70,6 +81,21 @@
     %4 = fmul <2 x double> %0, %1
     %5 = fmul <2 x double> %4, %2
     %6 = fadd <2 x double> %5, %2
+    ret <2 x double> %6
+  }
+
+  ; Function Attrs: mustprogress nofree norecurse nosync nounwind willreturn memory(none) uwtable
+  define dso_local noundef <2 x double> @_Z7muladd6Dv2_dS_S_(<2 x double> noundef %0, <2 x double> noundef %1, <2 x double> noundef %2) local_unnamed_addr #2 {
+    %4 = fmul <2 x double> %0, %1
+    %5 = fadd <2 x double> %4, %2
+    ret <2 x double> %5
+  }
+
+  ; Function Attrs: mustprogress nofree norecurse nosync nounwind willreturn memory(none) uwtable
+  define dso_local noundef <2 x double> @_Z7muladd7Dv2_dS_S_(<2 x double> noundef %0, <2 x double> noundef %1, <2 x double> noundef %2) local_unnamed_addr #2 {
+    %4 = fmul <2 x double> %0, %1
+    %5 = fadd <2 x double> %4, %2
+    %6 = fadd <2 x double> %4, %5
     ret <2 x double> %6
   }
 
@@ -145,6 +171,7 @@ body:             |
     %0:vr128 = COPY $xmm0
     %3:vr128 = nofpexcept MULPDrr %0, %1, implicit $mxcsr
     %4:vr128 = nofpexcept ADDPDrr %3, %2, implicit $mxcsr
+    ;CHECK : %4:vr128 = VFMADD213PDr %0, %1, %2, implicit $mxcsr
     $xmm0 = COPY %4
     RET 0, $xmm0
 ...
@@ -169,7 +196,7 @@ body:             |
     %0:vr128 = COPY $xmm0
     %1:vr128 = nofpexcept MULPDrr %0, %0, implicit $mxcsr
     %2:vr128 = nofpexcept ADDPDrr %1, %0, implicit $mxcsr
-    ;CHECK : %4:vr128 = VFMADD213PDr %0, %1, %2, implicit $mxcsr
+    ;CHECK : %2:vr128 = VFMADD213PDr %0, %1, %2, implicit $mxcsr
     $xmm0 = COPY %2
     RET 0, $xmm0
 ...
@@ -200,7 +227,7 @@ body:             |
     %0:vr128 = COPY $xmm0
     %3:vr128 = nofpexcept MULPDrr %0, %1, implicit $mxcsr
     %4:vr128 = nofpexcept ADDPDrr %3, %2, implicit $mxcsr
-    ; CHECK : %2:vr128 = VFMADD213PDr %0, %0, %0, implicit $mxcsr
+    ; CHECK : %4:vr128 = VFMADD213PDr %0, %1, %2, implicit $mxcsr
     $xmm0 = COPY %4
     RET 0, $xmm0
 ...
@@ -233,6 +260,70 @@ body:             |
     %3:vr128 = nofpexcept MULPDrr %0, %1, implicit $mxcsr
     %4:vr128 = nofpexcept MULPDrr %3, %2, implicit $mxcsr
     %5:vr128 = nofpexcept ADDPDrr %4, %2, implicit $mxcsr
+    ; CHECK : %4:vr128 = VFMADD213PDr %0, %1, %2, implicit $mxcsr
+    $xmm0 = COPY %5
+    RET 0, $xmm0
+...
+---
+name:            _Z7muladd6Dv2_dS_S_
+alignment:       16
+tracksRegLiveness: true
+debugInstrRef:   true
+registers:
+  - { id: 0, class: vr128 }
+  - { id: 1, class: vr128 }
+  - { id: 2, class: vr128 }
+  - { id: 3, class: vr128 }
+  - { id: 4, class: vr128 }
+liveins:
+  - { reg: '$xmm0', virtual-reg: '%0' }
+  - { reg: '$xmm1', virtual-reg: '%1' }
+  - { reg: '$xmm2', virtual-reg: '%2' }
+frameInfo:
+  maxAlignment:    1
+machineFunctionInfo: {}
+body:             |
+  bb.0 (%ir-block.3):
+    liveins: $xmm0, $xmm1, $xmm2
+  
+    %2:vr128 = COPY $xmm2
+    %1:vr128 = COPY $xmm1
+    %0:vr128 = COPY $xmm0
+    %3:vr128 = nofpexcept MULPDrr %0, %1, implicit $mxcsr
+    %4:vr128 = nofpexcept ADDPDrr %3, %2, implicit $mxcsr
+    ; CHECK : %4:vr128 = VFMADD213PDr %0, %1, %2, implicit $mxcsr
+    $xmm0 = COPY %4
+    RET 0, $xmm0
+...
+---
+name:            _Z7muladd7Dv2_dS_S_
+alignment:       16
+tracksRegLiveness: true
+debugInstrRef:   true
+registers:
+  - { id: 0, class: vr128 }
+  - { id: 1, class: vr128 }
+  - { id: 2, class: vr128 }
+  - { id: 3, class: vr128 }
+  - { id: 4, class: vr128 }
+  - { id: 5, class: vr128 }
+liveins:
+  - { reg: '$xmm0', virtual-reg: '%0' }
+  - { reg: '$xmm1', virtual-reg: '%1' }
+  - { reg: '$xmm2', virtual-reg: '%2' }
+frameInfo:
+  maxAlignment:    1
+machineFunctionInfo: {}
+body:             |
+  bb.0 (%ir-block.3):
+    liveins: $xmm0, $xmm1, $xmm2
+  
+    %2:vr128 = COPY $xmm2
+    %1:vr128 = COPY $xmm1
+    %0:vr128 = COPY $xmm0
+    %3:vr128 = nofpexcept MULPDrr %0, %1, implicit $mxcsr
+    %4:vr128 = nofpexcept ADDPDrr %3, %3, implicit $mxcsr
+    %5:vr128 = nofpexcept ADDPDrr %2, %4, implicit $mxcsr
     ; CHECK : %4:vr128 = VFMADD213PDr %0, %1, %2, implicit $mxcsr
     $xmm0 = COPY %5
     RET 0, $xmm0
