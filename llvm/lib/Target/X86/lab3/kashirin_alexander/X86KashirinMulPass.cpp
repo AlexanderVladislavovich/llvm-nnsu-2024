@@ -43,7 +43,7 @@ bool X86KashirinMulPass::runOnMachineFunction(MachineFunction &MF) {
               (MulDestReg == NextInstr->getOperand(1).getReg() ||
                  MulDestReg == NextInstr->getOperand(2).getReg() )) {
                 addinstrfound = false;
-                *AddInstr = nullptr;
+                AddInstr = nullptr;
                 break;
           
           } else if ( !addinstrfound && (NextInstr->getOpcode() == X86::ADDPDrr ||
@@ -56,7 +56,7 @@ bool X86KashirinMulPass::runOnMachineFunction(MachineFunction &MF) {
                      (MulDestReg == NextInstr->getOperand(1).getReg() ||
                      MulDestReg == NextInstr->getOperand(2).getReg())) {
             addinstrfound = false;
-            *AddInstr = nullptr
+            AddInstr = nullptr
             break;
           }
         }
