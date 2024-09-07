@@ -34,41 +34,46 @@ bool X86KashirinMulPass::runOnMachineFunction(MachineFunction &MF) {
           MulInstr->getOpcode() == X86::MULPDrm) {
         MachineInstr *AddInstr = nullptr;
         Register MulDestReg = MulInstr->getOperand(0).getReg();
-        bool addinstrfound = false; 
 
         for (auto NextInstr = std::next(Instr); NextInstr != MBB.end();
              ++NextInstr) {
           if (!(NextInstr->getOpcode() == X86::ADDPDrr ||
-               NextInstr->getOpcode() == X86::ADDPDrm) &&
-              (MulDestReg == NextInstr->getOperand(1).getReg() ||
-                 MulDestReg == NextInstr->getOperand(2).getReg() )) {
-                addinstrfound = false;
-                AddInstr = nullptr;
+               NextInstr->getOpcode() == X86::ADDPDrm)) {
+            bool flag = false;
+            for (const MachineOperand &Op : NextInstr->operands()) {
+              if (Op.isReg() && Op.getReg() == MulDestReg) {
+                flag = true;
                 break;
-          
-          } else if ( !addinstrfound && (NextInstr->getOpcode() == X86::ADDPDrr ||
+              }
+            }
+            if (flag)
+              break;
+          }
+          if ((NextInstr->getOpcode() == X86::ADDPDrr ||
                NextInstr->getOpcode() == X86::ADDPDrm) &&
               MulDestReg == NextInstr->getOperand(1).getReg()) {
-                AddInstr = &(*NextInstr);
-                addinstrfound = true;
-            //break;
-          } else if (addinstrfound &&
-                     (NextInstr->getOpcode() == X86::ADDPDrr ||
-                      NextInstr->getOpcode() == X86::ADDPDrm ||
-                        NextInstr->getOpcode() == X86::MULPDrr ||
-                         NextInstr->getOpcode() == X86::MULPDrm)) {
-                if (MulDestReg == NextInstr->getOperand(1).getReg() ||
-                    MulDestReg == NextInstr->getOperand(2).getReg()) {
-                      addinstrfound = false;
-                      AddInstr = nullptr;
-                      break;
-                }
-            
+            AddInstr = NextInstr;
+            break;
           }
         }
 
-        if (AddInstr && MulDestReg != AddInstr->getOperand(2).getReg()) {
-          toReplace.emplace_back(MulInstr, AddInstr);
+        if (AddInstr) {
+          bool HasDependency = false;
+          for (auto CheckInstr = std::next(AddInstr); CheckInstr != MBB.end();
+               ++CheckInstr) {
+            for (const MachineOperand &Op : CheckInstr->operands()) {
+              if (Op.isReg() && Op.getReg() == MulDestReg) {
+                HasDependency = true;
+                break;
+              }
+            }
+            if (HasDependency)
+              break;
+          }
+
+          if (AddInstr && !HasDependency && MulDestReg != AddInstr->getOperand(2).getReg()) {
+            toReplace.emplace_back(MulInstr, AddInstr);
+          }
         }
       }
     }
@@ -84,7 +89,7 @@ bool X86KashirinMulPass::runOnMachineFunction(MachineFunction &MF) {
         .addReg(MulInstr->getOperand(2).getReg())
         .addReg(AddInstr->getOperand(2).getReg());
 
-    MulInstr->eraseFromParent(); 
+    MulInstr->eraseFromParent();
     AddInstr->eraseFromParent();
 
     modified = true;
