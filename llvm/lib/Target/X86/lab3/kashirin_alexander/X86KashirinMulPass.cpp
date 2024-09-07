@@ -37,7 +37,7 @@ bool X86KashirinMulPass::runOnMachineFunction(MachineFunction &MF) {
 
         for (auto NextInstr = std::next(Instr); NextInstr != MBB.end();
              ++NextInstr) {
-          if (!(NextInstr->getOpcode() == X86::ADDPDrr ||
+         /* if (!(NextInstr->getOpcode() == X86::ADDPDrr ||
                NextInstr->getOpcode() == X86::ADDPDrm)) {
             bool flag = false;
             for (const MachineOperand &Op : NextInstr->operands()) {
@@ -48,7 +48,7 @@ bool X86KashirinMulPass::runOnMachineFunction(MachineFunction &MF) {
             }
             if (flag)
               break;
-          }
+          }*/
           if ((NextInstr->getOpcode() == X86::ADDPDrr ||
                NextInstr->getOpcode() == X86::ADDPDrm) &&
               MulDestReg == NextInstr->getOperand(1).getReg()) {
