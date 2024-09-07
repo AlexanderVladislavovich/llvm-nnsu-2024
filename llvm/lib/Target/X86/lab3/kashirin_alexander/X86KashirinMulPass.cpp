@@ -53,6 +53,10 @@ bool X86KashirinMulPass::runOnMachineFunction(MachineFunction &MF) {
                 addinstrfound = true;
             //break;
           } else if (addinstrfound &&
+                     (NextInstr->getOpcode() == X86::ADDPDrr ||
+                      NextInstr->getOpcode() == X86::ADDPDrm ||
+                        NextInstr->getOpcode() == X86::MULPDrr ||
+                         NextInstr->getOpcode() == X86::MULPDrm)) &&
                      (MulDestReg == NextInstr->getOperand(1).getReg() ||
                      MulDestReg == NextInstr->getOperand(2).getReg())) {
             addinstrfound = false;
