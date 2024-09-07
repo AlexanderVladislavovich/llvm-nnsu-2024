@@ -40,7 +40,7 @@ bool X86KashirinMulPass::runOnMachineFunction(MachineFunction &MF) {
           if (!(NextInstr->getOpcode() == X86::ADDPDrr ||
                NextInstr->getOpcode() == X86::ADDPDrm) &&
               (MulDestReg == NextInstr->getOperand(1) ||
-                 MulDestReg == NextInstr->getOperand(2) ) {
+                 MulDestReg == NextInstr->getOperand(2) )) {
               break;
           
           } else if ((NextInstr->getOpcode() == X86::ADDPDrr ||
