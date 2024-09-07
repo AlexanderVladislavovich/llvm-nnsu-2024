@@ -57,7 +57,7 @@ bool X86KashirinMulPass::runOnMachineFunction(MachineFunction &MF) {
           }
         }
 
-        if (AddInstr) {
+        /*if (AddInstr) {
           bool HasDependency = false;
           for (auto CheckInstr = std::next(AddInstr); CheckInstr != MBB.end();
                ++CheckInstr) {
@@ -69,12 +69,12 @@ bool X86KashirinMulPass::runOnMachineFunction(MachineFunction &MF) {
             }
             if (HasDependency)
               break;
-          }
+          }*/
 
-          if (AddInstr && !HasDependency && MulDestReg != AddInstr->getOperand(2).getReg()) {
+          if (AddInstr /*&& !HasDependency*/ && MulDestReg != AddInstr->getOperand(2).getReg()) {
             toReplace.emplace_back(MulInstr, AddInstr);
           }
-        }
+        //}
       }
     }
   }

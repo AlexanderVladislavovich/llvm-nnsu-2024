@@ -4,29 +4,6 @@
 #
 ##include <immintrin.h>
 #
-#__m128d muladd2(__m128d a, __m128d b, __m128d c) {
-#    __m128d tmp = a * b;
-#    return tmp + c;
-#}
-#
-#__m128d muladd3(__m128d a) {
-#    return a * a + a;
-#}
-#
-#__m128d muladd4(__m128d a, __m128d b, __m128d c) {
-#    __m128d tmp = a * b;
-#    __m128d foo1 = _mm_setzero_pd();
-#    __m128d foo2 = _mm_setzero_pd();
-#    return tmp + c;
-#}
-#
-#__m128d muladd5(__m128d a, __m128d b, __m128d c) {
-#    __m128d tmp = a * b * c;
-#    return tmp + c;
-#}
-#
-#__m128d muladd6(__m128d a, __m128d b, __m128d c) {
-#    __m128d tmp = a * b;
 #    return c + a * b;
 #}
 #
@@ -42,6 +19,12 @@
   source_filename = "tmp.cpp"
   target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
   target triple = "x86_64-pc-linux-gnu"
+
+  ; Function Attrs: mustprogress nofree nosync nounwind willreturn memory(none) uwtable
+  define dso_local noundef <2 x double> @_Z7muladd1Dv2_dS_S_(<2 x double> noundef %0, <2 x double> noundef %1, <2 x double> noundef %2) local_unnamed_addr #0 {
+    %4 = tail call <2 x double> @llvm.fmuladd.v2f64(<2 x double> %0, <2 x double> %1, <2 x double> %2)
+    ret <2 x double> %4
+  }
 
   ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
   declare <2 x double> @llvm.fmuladd.v2f64(<2 x double>, <2 x double>, <2 x double>) #1
@@ -102,6 +85,37 @@
   !3 = !{i32 7, !"uwtable", i32 1}
   !4 = !{!"Ubuntu clang version 14.0.0-1ubuntu1.1"}
 
+...
+---
+name:            _Z7muladd1Dv2_dS_S_
+alignment:       16
+tracksRegLiveness: true
+debugInstrRef:   true
+registers:
+  - { id: 0, class: vr128 }
+  - { id: 1, class: vr128 }
+  - { id: 2, class: vr128 }
+  - { id: 3, class: vr128 }
+  - { id: 4, class: vr128 }
+liveins:
+  - { reg: '$xmm0', virtual-reg: '%0' }
+  - { reg: '$xmm1', virtual-reg: '%1' }
+  - { reg: '$xmm2', virtual-reg: '%2' }
+frameInfo:
+  maxAlignment:    1
+machineFunctionInfo: {}
+body:             |
+  bb.0 (%ir-block.3):
+    liveins: $xmm0, $xmm1, $xmm2
+  
+    %2:vr128 = COPY $xmm2
+    %1:vr128 = COPY $xmm1
+    %0:vr128 = COPY $xmm0
+    %3:vr128 = nofpexcept MULPDrr %0, %1, implicit $mxcsr
+    %4:vr128 = nofpexcept ADDPDrr %3, %2, implicit $mxcsr
+    ; CHECK: %4:vr128 = VFMADD213PDr %0, %1, %2, implicit $mxcsr
+    $xmm0 = COPY %4
+    RET 0, $xmm0
 ...
 ---
 name:            _Z7muladd2Dv2_dS_S_
