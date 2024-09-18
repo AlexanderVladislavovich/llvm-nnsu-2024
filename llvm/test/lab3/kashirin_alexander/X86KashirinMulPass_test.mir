@@ -28,6 +28,9 @@
     ret <2 x double> %5
   }
 
+  ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
+  declare <2 x double> @llvm.fmuladd.v2f64(<2 x double>, <2 x double>, <2 x double>) #1
+
   ; Function Attrs: mustprogress nofree nosync nounwind willreturn memory(none) uwtable
   define dso_local noundef <2 x double> @_Z7muladd3Dv2_d(<2 x double> noundef %0) local_unnamed_addr #0 {
     %2 = tail call <2 x double> @llvm.fmuladd.v2f64(<2 x double> %0, <2 x double> %0, <2 x double> %0)
