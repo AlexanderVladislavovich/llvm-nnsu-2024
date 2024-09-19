@@ -181,7 +181,7 @@ body:             |
     %0:vr128 = COPY $xmm0
     %1:vr128 = nofpexcept MULPDrr %0, %0, implicit $mxcsr
     %2:vr128 = nofpexcept ADDPDrr %1, %0, implicit $mxcsr
-    ;CHECK : %2:vr128 = VFMADD213PDr %0, %1, %2, implicit $mxcsr
+    ;CHECK : %2:vr128 = VFMADD213PDr %0, %0, %0, implicit $mxcsr
     $xmm0 = COPY %2
     RET 0, $xmm0
 ...
