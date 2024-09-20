@@ -4,42 +4,7 @@
 #
 ##include <immintrin.h>
 #
-#__m128d muladd1(__m128d a, __m128d b, __m128d c) {
-#    return a * b + c;
-#}
-#
-#__m128d muladd2(__m128d a, __m128d b, __m128d c) {
-#    __m128d tmp = a * b;
-#    return tmp + c;
-#}
-#
-#__m128d muladd3(__m128d a) {
-#    return a * a + a;
-#}
-#
-#__m128d muladd4(__m128d a, __m128d b, __m128d c) {
-#    __m128d tmp = a * b;
-#    __m128d foo1 = _mm_setzero_pd();
-#    __m128d foo2 = _mm_setzero_pd();
-#    return tmp + c;
-#}
-#
-#__m128d muladd5(__m128d a, __m128d b, __m128d c) {
-#    __m128d tmp = a * b * c;
-#    return tmp + c;
-#}
-#
-#__m128d muladd6(__m128d a, __m128d b, __m128d c) {
-#    __m128d tmp = a * b;
-#    return c + a * b;
-#}
-#
-#__m128d muladd7(__m128d a, __m128d b, __m128d c) {
-#    __m128d tmp = a * b;
-#    __m128d tmp2 = tmp + c;
-#    return tmp + tmp2;
-#}
-#
+
 
 --- |
   ; ModuleID = 'tmp.ll'
