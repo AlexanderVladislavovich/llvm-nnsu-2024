@@ -208,6 +208,6 @@ body:             |
     %3:vr128 = nofpexcept MULPDrr %0, %1, implicit $mxcsr
     %4:vr128 = nofpexcept MULPDrr %3, %2, implicit $mxcsr
     %5:vr128 = nofpexcept ADDPDrr %4, %2, implicit $mxcsr
-    ; CHECK-NOT : %4:vr128 = VFMADD213PDr %0, %1, %2, implicit $mxcsr
+    ; CHECK : %4:vr128 = VFMADD213PDr %0, %1, %2, implicit $mxcsr
     $xmm0 = COPY %5
     RET 0, $xmm0
