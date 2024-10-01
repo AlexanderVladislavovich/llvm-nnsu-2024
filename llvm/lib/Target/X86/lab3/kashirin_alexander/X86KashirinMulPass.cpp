@@ -1,12 +1,13 @@
 #include "X86.h"
 #include "X86InstrInfo.h"
-#include "llvm/CodeGen/MachineBasicBlock.h"
+#include "X86Subtarget.h"
 #include "llvm/CodeGen/MachineFunctionPass.h"
-#include "llvm/CodeGen/MachineInstr.h"
 #include "llvm/CodeGen/MachineInstrBuilder.h"
-#include "llvm/CodeGen/Register.h"
-#include <utility>
-#include <vector>
+#include "llvm/IR/Function.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/IntrinsicsX86.h"
+#include "llvm/Pass.h"
+#include "llvm/Support/raw_ostream.h"
 
 using namespace llvm;
 
@@ -14,92 +15,85 @@ namespace {
 class X86KashirinMulPass : public MachineFunctionPass {
 public:
   static char ID;
-
   X86KashirinMulPass() : MachineFunctionPass(ID) {}
 
-  bool runOnMachineFunction(MachineFunction &MF) override;
-};
+  bool runOnMachineFunction(MachineFunction &MF) override {
+    SmallVector<MachineInstr *> deletedInstrPtr;
+    bool Changed = false;
 
-bool X86KashirinMulPass::runOnMachineFunction(MachineFunction &MF) {
-  bool modified = false;
-
-  const TargetInstrInfo *TII = MF.getSubtarget().getInstrInfo();
-  std::vector<std::pair<MachineInstr *, MachineInstr *>> toReplace;
-
-  for (MachineBasicBlock &MBB : MF) {
-    for (auto Instr = MBB.begin(); Instr != MBB.end(); ++Instr) {
-      MachineInstr *MulInstr = &(*Instr);
-
-      if (MulInstr->getOpcode() == X86::MULPDrr ||
-          MulInstr->getOpcode() == X86::MULPDrm) {
-        MachineInstr *AddInstr = nullptr;
-        Register MulDestReg = MulInstr->getOperand(0).getReg();
-
-        for (auto NextInstr = std::next(Instr); NextInstr != MBB.end();
-             ++NextInstr) {
-          if (!(NextInstr->getOpcode() == X86::ADDPDrr ||
-               NextInstr->getOpcode() == X86::ADDPDrm)) {
-            bool flag = false;
-            for (const MachineOperand &Op : NextInstr->operands()) {
-              if (Op.isReg() && Op.getReg() == MulDestReg) {
-                flag = true;
-                break;
-              }
-            }
-            if (flag)
-              break;
-          }
-          if ((NextInstr->getOpcode() == X86::ADDPDrr ||
-               NextInstr->getOpcode() == X86::ADDPDrm) &&
-              MulDestReg == NextInstr->getOperand(1).getReg()) {
-            AddInstr = &(*NextInstr);
-            break;
-          }
-        }
-
-        if (AddInstr) {
-          bool HasDependency = false;
-          for (auto CheckInstr = std::next(AddInstr); CheckInstr != MBB.end();
-               ++CheckInstr) {
-            for (const MachineOperand &Op : CheckInstr->operands()) {
-              if (Op.isReg() && Op.getReg() == MulDestReg) {
-                HasDependency = true;
-                break;
-              }
-            }
-            if (HasDependency)
-              break;
-          }
-
-          if (AddInstr /*&& !HasDependency*/ && MulDestReg != AddInstr->getOperand(2).getReg()) {
-            toReplace.emplace_back(MulInstr, AddInstr);
-          }
+    for (auto &MBB : MF) {
+      for (auto MI = MBB.begin(); MI != MBB.end(); ++MI) {
+        if (MI->getOpcode() == X86::MULPDrr) {
+          Register Reg = MI->getOperand(0).getReg();
+          Changed |= processMulAddPair(MF, MBB, MI, Reg, deletedInstrPtr);
         }
       }
     }
+
+    for (auto it : deletedInstrPtr)
+      it->eraseFromParent();
+
+    return Changed;
   }
 
-  for (auto &[MulInstr, AddInstr] : toReplace) {
-    MachineBasicBlock &MBB = *MulInstr->getParent();
-    MIMetadata MetaData(*MulInstr);
-
-    BuildMI(MBB, MulInstr, MetaData, TII->get(X86::VFMADD213PDr),
-            AddInstr->getOperand(0).getReg())
-        .addReg(MulInstr->getOperand(1).getReg())
-        .addReg(MulInstr->getOperand(2).getReg())
-        .addReg(AddInstr->getOperand(2).getReg());
-
-    MulInstr->eraseFromParent();
-    AddInstr->eraseFromParent();
-
-    modified = true;
+private:
+  bool processMulAddPair(MachineFunction &MF, MachineBasicBlock &MBB,
+                         MachineBasicBlock::iterator MI, Register Reg,
+                         SmallVectorImpl<MachineInstr *> &deletedInstrPtr) {
+    for (auto NextMI = std::next(MI); NextMI != MBB.end(); ++NextMI) {
+      if (NextMI->getOpcode() == X86::ADDPDrr) {
+        if (NextMI->getOperand(1).getReg() == Reg ||
+            NextMI->getOperand(2).getReg() == Reg) {
+          bool hasDependency = checkDependency(MBB, NextMI, Reg);
+          if (!hasDependency) {
+            createVFMADD213PDr(MF, MBB, MI, NextMI, Reg, deletedInstrPtr);
+            return true;
+          }
+          break;
+        }
+      } else if (hasOperand(NextMI, Reg)) {
+        break;
+      }
+    }
+    return false;
   }
 
-  return modified;
-}
+  bool checkDependency(const MachineBasicBlock &MBB,
+                       MachineBasicBlock::iterator NextMI, Register Reg) {
+    if (NextMI->getOperand(0).getReg() != Reg) {
+      for (auto CheckMI = std::next(NextMI); CheckMI != MBB.end(); ++CheckMI) {
+        if (hasOperand(CheckMI, Reg))
+          return true;
+      }
+    }
+    return false;
+  }
 
-char X86KashirinMulPass::ID = 0;
+  bool hasOperand(MachineBasicBlock::iterator MI, Register Reg) {
+    for (unsigned i = 0, e = MI->getNumOperands(); i != e; ++i) {
+      if (MI->getOperand(i).getReg() == Reg)
+        return true;
+    }
+    return false;
+  }
+
+  void createVFMADD213PDr(MachineFunction &MF, MachineBasicBlock &MBB,
+                          MachineBasicBlock::iterator MI,
+                          MachineBasicBlock::iterator NextMI, Register Reg,
+                          SmallVectorImpl<MachineInstr *> &deletedInstrPtr) {
+    MachineInstrBuilder BuilderMI =
+        BuildMI(MBB, MI, MI->getDebugLoc(),
+                MF.getSubtarget().getInstrInfo()->get(X86::VFMADD213PDr));
+    BuilderMI.addReg(NextMI->getOperand(0).getReg(), RegState::Define);
+    BuilderMI.addReg(MI->getOperand(1).getReg());
+    BuilderMI.addReg(MI->getOperand(2).getReg());
+    BuilderMI.addReg(NextMI->getOperand(2).getReg());
+    deletedInstrPtr.push_back(&*MI);
+    deletedInstrPtr.push_back(&*NextMI);
+  }
+};
 } // namespace
 
-static RegisterPass<X86KashirinMulPass>
-    X("x86-kashirin-mul-pass", "Multiply-Add Optimization Pass", false, false);
+char X86KashirinMulPass::ID = 0;
+static RegisterPass<X86KashirinMulPass> X("x86-kashirin-mul-pass",
+                                          "X86KashirinMulPass");
