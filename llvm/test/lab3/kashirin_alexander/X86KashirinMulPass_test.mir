@@ -387,4 +387,3 @@ body:             |
     ; CHECK-NEXT: renamable $xmm1 = nofpexcept SUBPDrr killed renamable $xmm1, killed renamable $xmm2, implicit $mxcsr
     ; CHECK-NEXT: $xmm0 = MOVAPDrr killed $xmm1
     ; CHECK-NEXT: RET64 $xmm0
-...
