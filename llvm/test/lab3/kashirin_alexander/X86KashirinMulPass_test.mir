@@ -2,55 +2,40 @@
 
 # test.cpp 
 #
-# __m128d muladd_test1(__m128d a, __m128d b, __m128d c) {
+# __m128d muladd1(__m128d a, __m128d b, __m128d c) {
 #   __m128d result = a * b + c;
 #   return result;
 # }
 #
-# __m128d muladd_test2(__m128d a, __m128d b, __m128d c) {
+# __m128d muladd2(__m128d a, __m128d b, __m128d c) {
 #   __m128d result = a * c + b;
 #   return result;
 # }
 #
-# __m128d muladd_test3(__m128d a, __m128d b, __m128d c) {
+# __m128d muladd3(__m128d a, __m128d b, __m128d c) {
 #   __m128d result = a * b - c;
 #   return result;
 # }
 #
-# __m128d muladd_test4(__m128d a, __m128d b, __m128d c) {
+# __m128d muladd4(__m128d a, __m128d b, __m128d c) {
 #   __m128d result = a * b + c + b;
 #   return result;
 # }
 #
-# __m128d muladd_test5(__m128d a, __m128d b, __m128d c) {
+# __m128d muladd5(__m128d a, __m128d b, __m128d c) {
 #   return a * c + b;
 # }
 #
-# __m128d muladd_test6(__m128d a, __m128d b, __m128d c) {
-#   __m128d temp = a * c;
-#   __m128d temp2 = b + a - c;
-#   return temp + c + temp2;
-# }
+#__m128d muladd6(__m128d a, __m128d b, __m128d c) {
+#    __m128d tmp = a * b;
+#    return c + a * b;
+#}
 #
-# __m128d muladd_test7(__m128d a, __m128d b, __m128d c) {
-#   __m128d temp = a * b;
-#  __m128d temp2 = temp - c;
-#  return temp + temp2;
-# }
-# 
-# __m128d muladd_test8(__m128d a, __m128d b, __m128d c) {
-#   __m128d temp = a * b;
-#   __m128d result = temp + c - a;
-#   return result;
-# }
-#
-# __m128d muladd_test9(__m128d a, __m128d b, __m128d c) {
-#   __m128d temp1 = a * b;
-#   __m128d temp2 = c - a;
-#   __m128d result = temp1 - temp2;
-#   return result;
-# }
-#
+#__m128d muladd7(__m128d a, __m128d b, __m128d c) {
+#    __m128d tmp = a * b;
+#    __m128d tmp2 = tmp + c;
+#    return tmp + tmp2;
+#}
 
 
 --- |
@@ -58,7 +43,7 @@
   target triple = "x86_64-unknown-linux-gnu"
 
   ; Function Attrs: mustprogress nofree nosync nounwind willreturn memory(none) uwtable
-  define dso_local noundef <2 x double> @_Z12muladd_test1Dv2_dS_S_(<2 x double> noundef %a, <2 x double> noundef %b, <2 x double> noundef %c) local_unnamed_addr #0 {
+  define dso_local noundef <2 x double> @_Z12muladd1Dv2_dS_S_(<2 x double> noundef %a, <2 x double> noundef %b, <2 x double> noundef %c) local_unnamed_addr #0 {
   entry:
     %0 = tail call <2 x double> @llvm.fmuladd.v2f64(<2 x double> %a, <2 x double> %b, <2 x double> %c)
     ret <2 x double> %0
@@ -68,14 +53,14 @@
   declare <2 x double> @llvm.fmuladd.v2f64(<2 x double>, <2 x double>, <2 x double>) #1
 
   ; Function Attrs: mustprogress nofree nosync nounwind willreturn memory(none) uwtable
-  define dso_local noundef <2 x double> @_Z12muladd_test2Dv2_dS_S_(<2 x double> noundef %a, <2 x double> noundef %b, <2 x double> noundef %c) local_unnamed_addr #0 {
+  define dso_local noundef <2 x double> @_Z12muladd2Dv2_dS_S_(<2 x double> noundef %a, <2 x double> noundef %b, <2 x double> noundef %c) local_unnamed_addr #0 {
   entry:
     %0 = tail call <2 x double> @llvm.fmuladd.v2f64(<2 x double> %a, <2 x double> %c, <2 x double> %b)
     ret <2 x double> %0
   }
 
   ; Function Attrs: mustprogress nofree nosync nounwind willreturn memory(none) uwtable
-  define dso_local noundef <2 x double> @_Z12muladd_test3Dv2_dS_S_(<2 x double> noundef %a, <2 x double> noundef %b, <2 x double> noundef %c) local_unnamed_addr #0 {
+  define dso_local noundef <2 x double> @_Z12muladd3Dv2_dS_S_(<2 x double> noundef %a, <2 x double> noundef %b, <2 x double> noundef %c) local_unnamed_addr #0 {
   entry:
     %neg = fneg <2 x double> %c
     %0 = tail call <2 x double> @llvm.fmuladd.v2f64(<2 x double> %a, <2 x double> %b, <2 x double> %neg)
@@ -83,7 +68,7 @@
   }
 
   ; Function Attrs: mustprogress nofree nosync nounwind willreturn memory(none) uwtable
-  define dso_local noundef <2 x double> @_Z12muladd_test4Dv2_dS_S_(<2 x double> noundef %a, <2 x double> noundef %b, <2 x double> noundef %c) local_unnamed_addr #0 {
+  define dso_local noundef <2 x double> @_Z12muladd4Dv2_dS_S_(<2 x double> noundef %a, <2 x double> noundef %b, <2 x double> noundef %c) local_unnamed_addr #0 {
   entry:
     %0 = tail call <2 x double> @llvm.fmuladd.v2f64(<2 x double> %a, <2 x double> %b, <2 x double> %c)
     %add = fadd <2 x double> %0, %b
@@ -91,7 +76,7 @@
   }
 
   ; Function Attrs: mustprogress nofree nosync nounwind willreturn memory(none) uwtable
-  define dso_local noundef <2 x double> @_Z12muladd_test5Dv2_dS_S_(<2 x double> noundef %a, <2 x double> noundef %b, <2 x double> noundef %c) local_unnamed_addr #0 {
+  define dso_local noundef <2 x double> @_Z12muladd5Dv2_dS_S_(<2 x double> noundef %a, <2 x double> noundef %b, <2 x double> noundef %c) local_unnamed_addr #0 {
   entry:
     %0 = tail call <2 x double> @llvm.fmuladd.v2f64(<2 x double> %a, <2 x double> %c, <2 x double> %b)
     ret <2 x double> %0
@@ -110,7 +95,7 @@
 
 ...
 ---
-name:            _Z12muladd_test1Dv2_dS_S_
+name:            _Z12muladd1Dv2_dS_S_
 alignment:       16
 tracksRegLiveness: true
 debugInstrRef:   true
@@ -134,7 +119,7 @@ body:             |
     ; CHECK-NEXT: RET64 $xmm0
 ...
 ---
-name:            _Z12muladd_test2Dv2_dS_S_
+name:            _Z12muladd2Dv2_dS_S_
 alignment:       16
 tracksRegLiveness: true
 debugInstrRef:   true
@@ -158,7 +143,7 @@ body:             |
     ; CHECK-NEXT: RET64 $xmm0
 ...
 ---
-name:            _Z12muladd_test3Dv2_dS_S_
+name:            _Z12muladd3Dv2_dS_S_
 alignment:       16
 tracksRegLiveness: true
 debugInstrRef:   true
@@ -183,7 +168,7 @@ body:             |
     ; CHECK-NEXT: RET64 $xmm0
 ...
 ---
-name:            _Z12muladd_test4Dv2_dS_S_
+name:            _Z12muladd4Dv2_dS_S_
 alignment:       16
 tracksRegLiveness: true
 debugInstrRef:   true
@@ -209,7 +194,7 @@ body:             |
     ; CHECK-NEXT: RET64 $xmm0    
 ...
 ---
-name:            _Z12muladd_test5Dv2_dS_S_
+name:            _Z12muladd5Dv2_dS_S_
 alignment:       16
 tracksRegLiveness: true
 debugInstrRef:   true
