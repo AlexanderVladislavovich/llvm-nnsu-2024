@@ -90,7 +90,7 @@
   }
 
     ; Function Attrs: mustprogress nofree norecurse nosync nounwind willreturn memory(none) uwtable
-  define dso_local noundef <2 x double> @_Z12muladd6Dv2_dS_S_(<2 x double> noundef %a, <2 x double> noundef %b, <2 x double> noundef %c) local_unnamed_addr #2 {
+  define dso_local noundef <2 x double> @_Z12muladd7Dv2_dS_S_(<2 x double> noundef %a, <2 x double> noundef %b, <2 x double> noundef %c) local_unnamed_addr #2 {
   entry:
     %mul = fmul <2 x double> %a, %c
     %add = fadd <2 x double> %a, %b
