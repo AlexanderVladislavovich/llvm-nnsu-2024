@@ -260,7 +260,7 @@ body:             |
     ; CHECK: $xmm0 = VFMADD213PDr $xmm0, $xmm2, $xmm1, implicit $mxcsr
     ; CHECK-NEXT: RET64 $xmm0
 
-    ...
+...
 ---
 name:            _Z12muladd7Dv2_dS_S_
 alignment:       16
