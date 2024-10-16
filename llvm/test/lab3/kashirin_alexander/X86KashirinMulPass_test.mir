@@ -28,14 +28,14 @@
 #
 #__m128d muladd6(__m128d a, __m128d b, __m128d c) {
 #    __m128d tmp = a * b;
-#    return c + a * b;
+#    return c * a + b;
 #}
 #
-#__m128d muladd7(__m128d a, __m128d b, __m128d c) {
-#    __m128d tmp = a * b;
-#    __m128d tmp2 = tmp + c;
-#    return tmp + tmp2;
-#}
+# __m128d muladd7(__m128d a, __m128d b, __m128d c) {
+#   __m128d temp = a * c;
+#   __m128d temp2 = b + a - c;
+#   return temp + c + temp2;
+# }
 
 
 --- |
